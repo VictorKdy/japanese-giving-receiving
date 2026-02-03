@@ -2555,19 +2555,19 @@ function App() {
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("main", {
-                className: "h-full flex flex-col items-center justify-center w-full relative pt-16 md:pt-0",
+                className: "h-full flex flex-col items-center justify-start w-full relative pt-20 md:pt-16",
                 children: [
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                        className: "absolute top-6 right-6 flex items-center gap-4",
+                        className: "absolute top-6 right-6 flex items-center gap-5",
                         children: [
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                                 className: "flex flex-col items-center",
                                 children: [
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
-                                        className: "text-[10px] font-bold text-gray-200 uppercase tracking-wider mb-0.5 flex items-center gap-1",
+                                        className: "text-xs font-bold text-gray-200 uppercase tracking-wider mb-0.5 flex items-center gap-1",
                                         children: [
                                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _lucideReact.Flame), {
-                                                size: 10,
+                                                size: 12,
                                                 className: streak > 0 ? "text-orange-400" : "text-gray-400"
                                             }, void 0, false, {
                                                 fileName: "scr/main.js",
@@ -2582,7 +2582,7 @@ function App() {
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
-                                        className: `text-base font-mono font-bold ${streak > 0 ? "text-orange-300" : "text-gray-400"}`,
+                                        className: `text-lg font-mono font-bold ${streak > 0 ? "text-orange-300" : "text-gray-400"}`,
                                         children: streak
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
@@ -2599,10 +2599,10 @@ function App() {
                                 className: "flex flex-col items-center",
                                 children: [
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
-                                        className: "text-[10px] font-bold text-gray-200 uppercase tracking-wider mb-0.5 flex items-center gap-1",
+                                        className: "text-xs font-bold text-gray-200 uppercase tracking-wider mb-0.5 flex items-center gap-1",
                                         children: [
                                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _lucideReact.Trophy), {
-                                                size: 10,
+                                                size: 12,
                                                 className: maxStreak > 0 ? "text-yellow-400" : "text-gray-400"
                                             }, void 0, false, {
                                                 fileName: "scr/main.js",
@@ -2617,7 +2617,7 @@ function App() {
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
-                                        className: `text-base font-mono font-bold ${maxStreak > 0 ? "text-yellow-300" : "text-gray-400"}`,
+                                        className: `text-lg font-mono font-bold ${maxStreak > 0 ? "text-yellow-300" : "text-gray-400"}`,
                                         children: maxStreak
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
@@ -2637,7 +2637,7 @@ function App() {
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                        className: "w-full max-w-2xl mb-8",
+                        className: "w-full max-w-2xl mb-6 mt-4 md:mt-8",
                         children: /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                             className: "flex items-center justify-between px-8 md:px-16",
                             children: [
@@ -2759,7 +2759,7 @@ function App() {
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                        className: "w-full max-w-xl flex flex-col items-center space-y-4",
+                        className: "w-full max-w-xl flex flex-col items-center space-y-3 px-4",
                         children: [
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                                 className: "w-full relative",
@@ -2991,6 +2991,7 @@ function App() {
                                         onClick: ()=>{
                                             setShowAnswer(true);
                                             setStreak(0);
+                                            if (inputRef.current) inputRef.current.focus();
                                         },
                                         className: "text-gray-300 hover:text-white text-sm font-medium transition-colors cursor-pointer",
                                         children: "\u308F\u304B\u3089\u306A\u3044"
@@ -3013,19 +3014,20 @@ function App() {
                                                 children: "\u3082\u3046\u4E00\u5EA6"
                                             }, void 0, false, {
                                                 fileName: "scr/main.js",
-                                                lineNumber: 1379,
+                                                lineNumber: 1380,
                                                 columnNumber: 18
                                             }, this),
                                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("button", {
                                                 onClick: ()=>{
                                                     generateScenario();
                                                     setShowAnswer(false);
+                                                    if (inputRef.current) inputRef.current.focus();
                                                 },
                                                 className: `${isCorrect ? 'bg-green-700 hover:bg-green-600' : 'bg-red-700 hover:bg-red-600'} text-white font-bold py-2 px-6 rounded-full text-sm transition-colors cursor-pointer`,
                                                 children: "\u6B21\u3078"
                                             }, void 0, false, {
                                                 fileName: "scr/main.js",
-                                                lineNumber: 1391,
+                                                lineNumber: 1392,
                                                 columnNumber: 18
                                             }, this)
                                         ]
@@ -3067,7 +3069,7 @@ const rootElement = document.getElementById('root');
 if (!globalRoot) globalRoot = (0, _clientDefault.default).createRoot(rootElement);
 globalRoot.render(/*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(App, {}, void 0, false, {
     fileName: "scr/main.js",
-    lineNumber: 1420,
+    lineNumber: 1422,
     columnNumber: 19
 }, undefined));
 var _c, _c1, _c2, _c3, _c4, _c5;
