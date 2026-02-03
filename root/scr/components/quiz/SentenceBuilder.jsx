@@ -139,7 +139,7 @@ function TokenBank({ tokens, onDragStart, onClick, draggedToken, showEnglish, is
   );
 }
 
-export function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEnglish, isLocked = false, shouldReset = false, onResetComplete, verbFilters = {} }) {
+export function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEnglish, isLocked = false, shouldReset = false, onResetComplete, verbFilters = {}, showAnswer = false }) {
   const [sentence, setSentence] = useState([]);
   const [draggedToken, setDraggedToken] = useState(null);
   // Track which token IDs are currently used in the sentence (by original id, not instanceId)
@@ -311,32 +311,34 @@ export function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEngli
   const titleEN = 'Sentence Builder';
 
   return (
-    <div className="w-full bg-[#252525] rounded-2xl border border-[#333] p-4 space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
-          {titleJP}{showEnglish && <span className="text-gray-500 font-normal normal-case"> / {titleEN}</span>}
-        </h3>
-        {/* Reset Button - only shown when not locked and sentence is not empty */}
-        {!isLocked && (
-          <button
-            onClick={handleReset}
-            disabled={sentence.length === 0}
-            className={`
-              flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all
-              ${sentence.length > 0 
-                ? 'text-white bg-[#404040] hover:bg-[#4a4a4a] cursor-pointer' 
-                : 'text-gray-600 bg-[#2a2a2a] cursor-not-allowed'
-              }
-            `}
-          >
-            <RotateCcw size={12} />
-            リセット
-          </button>
-        )}
-      </div>
+    <div className={`w-full bg-[#252525] rounded-2xl border border-[#333] p-4 ${showAnswer ? 'space-y-2' : 'space-y-4'}`}>
+      {/* Header - Hidden during answer reveal */}
+      {!showAnswer && (
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+            {titleJP}{showEnglish && <span className="text-gray-500 font-normal normal-case"> / {titleEN}</span>}
+          </h3>
+          {/* Reset Button - only shown when not locked and sentence is not empty */}
+          {!isLocked && (
+            <button
+              onClick={handleReset}
+              disabled={sentence.length === 0}
+              className={`
+                flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all
+                ${sentence.length > 0 
+                  ? 'text-white bg-[#404040] hover:bg-[#4a4a4a] cursor-pointer' 
+                  : 'text-gray-600 bg-[#2a2a2a] cursor-not-allowed'
+                }
+              `}
+            >
+              <RotateCcw size={12} />
+              リセット
+            </button>
+          )}
+        </div>
+      )}
 
-      {/* Drop Zone - Sentence Building Area */}
+      {/* Drop Zone - Sentence Building Area (always visible, shows user's answer) */}
       <DropZone
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -351,7 +353,7 @@ export function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEngli
             onRemove={handleRemoveToken}
             isDragging={draggedToken?.instanceId === token.instanceId}
             isInSentence={true}
-            showEnglish={showEnglish}
+            showEnglish={showAnswer ? false : showEnglish}
             isLocked={isLocked}
           />
         ))}

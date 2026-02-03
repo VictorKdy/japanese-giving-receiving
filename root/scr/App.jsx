@@ -135,6 +135,7 @@ export default function App() {
   const handleGiveUp = useCallback(() => {
     setShowAnswer(true);
     setStreak(0);
+    setIsBuilderLocked(true);
     if (inputRef.current) inputRef.current.focus();
   }, []);
 
@@ -197,65 +198,67 @@ export default function App() {
           </div>
         </div>
 
-        {/* Visual Scenario */}
-        <div className="w-full max-w-2xl mb-6 mt-4 md:mt-8">
-          <div className="flex items-center justify-between px-8 md:px-16">
-            <EntityDisplay 
-              entity={scenario.giver} 
-              role="giver" 
-              isPerspective={scenario.perspective.id === scenario.giver.id} 
-              showEnglish={settings.englishLabels} 
-              showFurigana={settings.furigana} 
-            />
-            
-            <div className="flex flex-col items-center mx-4">
-              <div 
-                className="bg-[#2a2a2a] p-3 rounded-full border border-[#333] mb-2 relative flex items-center justify-center w-14 h-14 cursor-pointer hover:border-gray-500 transition-colors"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setShowItemName(!showItemName)}
-              >
-                <ItemIcon size={22} className="text-yellow-400" />
-                
-                {/* Advanced Mode Action Overlay */}
-                {settings.advancedMode && scenario.action && (
-                  <div className="absolute -bottom-2 bg-red-800 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap z-10">
-                    {scenario.action.te}
-                  </div>
-                )}
-
-                {/* Click-to-reveal item name */}
-                {showItemName && (
-                  <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black text-white text-sm px-3 py-1.5 rounded whitespace-nowrap z-20 animate-in fade-in zoom-in">
-                    <RubyText 
-                      data={scenario.item.furigana} 
-                      showFurigana={settings.furigana} 
-                      textClass="text-base font-medium text-white"
-                    />
-                  </div>
-                )}
-              </div>
+        {/* Visual Scenario - Hidden during answer reveal */}
+        {!showAnswer && (
+          <div className="w-full max-w-2xl mb-6 mt-4 md:mt-8">
+            <div className="flex items-center justify-between px-8 md:px-16">
+              <EntityDisplay 
+                entity={scenario.giver} 
+                role="giver" 
+                isPerspective={scenario.perspective.id === scenario.giver.id} 
+                showEnglish={settings.englishLabels} 
+                showFurigana={settings.furigana} 
+              />
               
-              <div className="flex items-center justify-center mt-2 relative">
-                <ArrowRight size={36} strokeWidth={2.5} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
-                
-                {/* Advanced Mode Meaning */}
-                {settings.advancedMode && scenario.action && settings.englishLabels && (
-                  <div className="absolute top-10 left-1/2 transform -translate-x-1/2 text-[10px] text-rose-400 font-medium whitespace-nowrap">
-                    {scenario.action.meaning}
-                  </div>
-                )}
-              </div>
-            </div>
+              <div className="flex flex-col items-center mx-4">
+                <div 
+                  className="bg-[#2a2a2a] p-3 rounded-full border border-[#333] mb-2 relative flex items-center justify-center w-14 h-14 cursor-pointer hover:border-gray-500 transition-colors"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setShowItemName(!showItemName)}
+                >
+                  <ItemIcon size={22} className="text-yellow-400" />
+                  
+                  {/* Advanced Mode Action Overlay */}
+                  {settings.advancedMode && scenario.action && (
+                    <div className="absolute -bottom-2 bg-red-800 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap z-10">
+                      {scenario.action.te}
+                    </div>
+                  )}
 
-            <EntityDisplay 
-              entity={scenario.receiver} 
-              role="receiver" 
-              isPerspective={scenario.perspective.id === scenario.receiver.id} 
-              showEnglish={settings.englishLabels} 
-              showFurigana={settings.furigana} 
-            />
+                  {/* Click-to-reveal item name */}
+                  {showItemName && (
+                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black text-white text-sm px-3 py-1.5 rounded whitespace-nowrap z-20 animate-in fade-in zoom-in">
+                      <RubyText 
+                        data={scenario.item.furigana} 
+                        showFurigana={settings.furigana} 
+                        textClass="text-base font-medium text-white"
+                      />
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-center mt-2 relative">
+                  <ArrowRight size={36} strokeWidth={2.5} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+                  
+                  {/* Advanced Mode Meaning */}
+                  {settings.advancedMode && scenario.action && settings.englishLabels && (
+                    <div className="absolute top-10 left-1/2 transform -translate-x-1/2 text-[10px] text-rose-400 font-medium whitespace-nowrap">
+                      {scenario.action.meaning}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <EntityDisplay 
+                entity={scenario.receiver} 
+                role="receiver" 
+                isPerspective={scenario.perspective.id === scenario.receiver.id} 
+                showEnglish={settings.englishLabels} 
+                showFurigana={settings.furigana} 
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Typing Input Area */}
         <div className="w-full max-w-xl flex flex-col items-center space-y-3 px-4">
@@ -271,6 +274,7 @@ export default function App() {
               shouldReset={shouldResetBuilder}
               onResetComplete={handleBuilderResetComplete}
               verbFilters={settings.verbFilters}
+              showAnswer={showAnswer}
             />
           ) : (
             <QuizInput 
