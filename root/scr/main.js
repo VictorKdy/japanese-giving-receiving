@@ -1199,27 +1199,27 @@ export default function App() {
       </div>
 
       {/* Main Content Area */}
-      <main className="h-full flex flex-col items-center justify-center w-full relative pt-16 md:pt-0">
+      <main className="h-full flex flex-col items-center justify-start w-full relative pt-20 md:pt-16">
         
-        {/* Top Right: Streak Counters - 50% smaller, Current left of Top */}
-        <div className="absolute top-6 right-6 flex items-center gap-4">
+        {/* Top Right: Streak Counters - slightly larger */}
+        <div className="absolute top-6 right-6 flex items-center gap-5">
            <div className="flex flex-col items-center">
-            <span className="text-[10px] font-bold text-gray-200 uppercase tracking-wider mb-0.5 flex items-center gap-1">
-              <Flame size={10} className={streak > 0 ? "text-orange-400" : "text-gray-400"} /> 現在
+            <span className="text-xs font-bold text-gray-200 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+              <Flame size={12} className={streak > 0 ? "text-orange-400" : "text-gray-400"} /> 現在
             </span>
-            <span className={`text-base font-mono font-bold ${streak > 0 ? "text-orange-300" : "text-gray-400"}`}>{streak}</span>
+            <span className={`text-lg font-mono font-bold ${streak > 0 ? "text-orange-300" : "text-gray-400"}`}>{streak}</span>
           </div>
 
           <div className="flex flex-col items-center">
-            <span className="text-[10px] font-bold text-gray-200 uppercase tracking-wider mb-0.5 flex items-center gap-1">
-              <Trophy size={10} className={maxStreak > 0 ? "text-yellow-400" : "text-gray-400"} /> 最高
+            <span className="text-xs font-bold text-gray-200 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+              <Trophy size={12} className={maxStreak > 0 ? "text-yellow-400" : "text-gray-400"} /> 最高
             </span>
-            <span className={`text-base font-mono font-bold ${maxStreak > 0 ? "text-yellow-300" : "text-gray-400"}`}>{maxStreak}</span>
+            <span className={`text-lg font-mono font-bold ${maxStreak > 0 ? "text-yellow-300" : "text-gray-400"}`}>{maxStreak}</span>
           </div>
         </div>
 
-        {/* Visual Scenario */}
-        <div className="w-full max-w-2xl mb-8">
+        {/* Visual Scenario - with top margin for mobile safe-area */}
+        <div className="w-full max-w-2xl mb-6 mt-4 md:mt-8">
            <div className="flex items-center justify-between px-8 md:px-16">
               <EntityDisplay entity={scenario.giver} role="giver" isPerspective={scenario.perspective.id === scenario.giver.id} showEnglish={settings.englishLabels} showFurigana={settings.furigana} />
               
@@ -1267,7 +1267,7 @@ export default function App() {
         </div>
 
         {/* Typing Input Area */}
-        <div className="w-full max-w-xl flex flex-col items-center space-y-4">
+        <div className="w-full max-w-xl flex flex-col items-center space-y-3 px-4">
           
           <div className="w-full relative">
             <input 
@@ -1367,6 +1367,7 @@ export default function App() {
                   onClick={() => {
                     setShowAnswer(true);
                     setStreak(0);
+                    if (inputRef.current) inputRef.current.focus();
                   }}
                   className="text-gray-300 hover:text-white text-sm font-medium transition-colors cursor-pointer"
                >
@@ -1392,6 +1393,7 @@ export default function App() {
                    onClick={() => {
                      generateScenario();
                      setShowAnswer(false);
+                     if (inputRef.current) inputRef.current.focus();
                    }}
                    className={`${isCorrect ? 'bg-green-700 hover:bg-green-600' : 'bg-red-700 hover:bg-red-600'} text-white font-bold py-2 px-6 rounded-full text-sm transition-colors cursor-pointer`}
                  >
