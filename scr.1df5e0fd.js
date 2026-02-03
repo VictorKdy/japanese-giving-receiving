@@ -207,11 +207,11 @@
       });
     }
   }
-})({"cULE0":[function(require,module,exports,__globalThis) {
+})({"fsLVC":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
-var HMR_SERVER_PORT = 1234;
+var HMR_SERVER_PORT = 37218;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "439701173a9199ea";
 var HMR_USE_SSE = false;
@@ -25128,6 +25128,7 @@ function App() {
     const handleGiveUp = (0, _react.useCallback)(()=>{
         setShowAnswer(true);
         setStreak(0);
+        setIsBuilderLocked(true);
         if (inputRef.current) inputRef.current.focus();
     }, []);
     const handleRetry = (0, _react.useCallback)(()=>{
@@ -25154,7 +25155,7 @@ function App() {
         children: "Loading..."
     }, void 0, false, {
         fileName: "scr/App.jsx",
-        lineNumber: 161,
+        lineNumber: 162,
         columnNumber: 25
     }, this);
     const ItemIcon = scenario.item.icon;
@@ -25170,7 +25171,7 @@ function App() {
                 setSettings: setSettings
             }, void 0, false, {
                 fileName: "scr/App.jsx",
-                lineNumber: 172,
+                lineNumber: 173,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("main", {
@@ -25190,14 +25191,14 @@ function App() {
                                                 className: streak > 0 ? "text-orange-400" : "text-gray-400"
                                             }, void 0, false, {
                                                 fileName: "scr/App.jsx",
-                                                lineNumber: 187,
+                                                lineNumber: 188,
                                                 columnNumber: 15
                                             }, this),
                                             " \u73FE\u5728"
                                         ]
                                     }, void 0, true, {
                                         fileName: "scr/App.jsx",
-                                        lineNumber: 186,
+                                        lineNumber: 187,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -25205,13 +25206,13 @@ function App() {
                                         children: streak
                                     }, void 0, false, {
                                         fileName: "scr/App.jsx",
-                                        lineNumber: 189,
+                                        lineNumber: 190,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "scr/App.jsx",
-                                lineNumber: 185,
+                                lineNumber: 186,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -25225,14 +25226,14 @@ function App() {
                                                 className: maxStreak > 0 ? "text-yellow-400" : "text-gray-400"
                                             }, void 0, false, {
                                                 fileName: "scr/App.jsx",
-                                                lineNumber: 194,
+                                                lineNumber: 195,
                                                 columnNumber: 15
                                             }, this),
                                             " \u6700\u9AD8"
                                         ]
                                     }, void 0, true, {
                                         fileName: "scr/App.jsx",
-                                        lineNumber: 193,
+                                        lineNumber: 194,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -25240,22 +25241,22 @@ function App() {
                                         children: maxStreak
                                     }, void 0, false, {
                                         fileName: "scr/App.jsx",
-                                        lineNumber: 196,
+                                        lineNumber: 197,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "scr/App.jsx",
-                                lineNumber: 192,
+                                lineNumber: 193,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "scr/App.jsx",
-                        lineNumber: 184,
+                        lineNumber: 185,
                         columnNumber: 9
                     }, this),
-                    /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                    !showAnswer && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                         className: "w-full max-w-2xl mb-6 mt-4 md:mt-8",
                         children: /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                             className: "flex items-center justify-between px-8 md:px-16",
@@ -25268,8 +25269,8 @@ function App() {
                                     showFurigana: settings.furigana
                                 }, void 0, false, {
                                     fileName: "scr/App.jsx",
-                                    lineNumber: 203,
-                                    columnNumber: 13
+                                    lineNumber: 205,
+                                    columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                                     className: "flex flex-col items-center mx-4",
@@ -25284,16 +25285,16 @@ function App() {
                                                     className: "text-yellow-400"
                                                 }, void 0, false, {
                                                     fileName: "scr/App.jsx",
-                                                    lineNumber: 217,
-                                                    columnNumber: 17
+                                                    lineNumber: 219,
+                                                    columnNumber: 19
                                                 }, this),
                                                 settings.advancedMode && scenario.action && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                                                     className: "absolute -bottom-2 bg-red-800 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap z-10",
                                                     children: scenario.action.te
                                                 }, void 0, false, {
                                                     fileName: "scr/App.jsx",
-                                                    lineNumber: 221,
-                                                    columnNumber: 19
+                                                    lineNumber: 223,
+                                                    columnNumber: 21
                                                 }, this),
                                                 showItemName && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                                                     className: "absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black text-white text-sm px-3 py-1.5 rounded whitespace-nowrap z-20 animate-in fade-in zoom-in",
@@ -25303,19 +25304,19 @@ function App() {
                                                         textClass: "text-base font-medium text-white"
                                                     }, void 0, false, {
                                                         fileName: "scr/App.jsx",
-                                                        lineNumber: 229,
-                                                        columnNumber: 21
+                                                        lineNumber: 231,
+                                                        columnNumber: 23
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "scr/App.jsx",
-                                                    lineNumber: 228,
-                                                    columnNumber: 19
+                                                    lineNumber: 230,
+                                                    columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "scr/App.jsx",
-                                            lineNumber: 212,
-                                            columnNumber: 15
+                                            lineNumber: 214,
+                                            columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                                             className: "flex items-center justify-center mt-2 relative",
@@ -25326,28 +25327,28 @@ function App() {
                                                     className: "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
                                                 }, void 0, false, {
                                                     fileName: "scr/App.jsx",
-                                                    lineNumber: 239,
-                                                    columnNumber: 17
+                                                    lineNumber: 241,
+                                                    columnNumber: 19
                                                 }, this),
                                                 settings.advancedMode && scenario.action && settings.englishLabels && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                                                     className: "absolute top-10 left-1/2 transform -translate-x-1/2 text-[10px] text-rose-400 font-medium whitespace-nowrap",
                                                     children: scenario.action.meaning
                                                 }, void 0, false, {
                                                     fileName: "scr/App.jsx",
-                                                    lineNumber: 243,
-                                                    columnNumber: 19
+                                                    lineNumber: 245,
+                                                    columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "scr/App.jsx",
-                                            lineNumber: 238,
-                                            columnNumber: 15
+                                            lineNumber: 240,
+                                            columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "scr/App.jsx",
-                                    lineNumber: 211,
-                                    columnNumber: 13
+                                    lineNumber: 213,
+                                    columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _components.EntityDisplay), {
                                     entity: scenario.receiver,
@@ -25357,19 +25358,19 @@ function App() {
                                     showFurigana: settings.furigana
                                 }, void 0, false, {
                                     fileName: "scr/App.jsx",
-                                    lineNumber: 250,
-                                    columnNumber: 13
+                                    lineNumber: 252,
+                                    columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "scr/App.jsx",
-                            lineNumber: 202,
-                            columnNumber: 11
+                            lineNumber: 204,
+                            columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "scr/App.jsx",
-                        lineNumber: 201,
-                        columnNumber: 9
+                        lineNumber: 203,
+                        columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                         className: "w-full max-w-xl flex flex-col items-center space-y-3 px-4",
@@ -25382,10 +25383,11 @@ function App() {
                                 isLocked: isBuilderLocked,
                                 shouldReset: shouldResetBuilder,
                                 onResetComplete: handleBuilderResetComplete,
-                                verbFilters: settings.verbFilters
+                                verbFilters: settings.verbFilters,
+                                showAnswer: showAnswer
                             }, void 0, false, {
                                 fileName: "scr/App.jsx",
-                                lineNumber: 265,
+                                lineNumber: 268,
                                 columnNumber: 13
                             }, this) : /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _components.QuizInput), {
                                 inputRef: inputRef,
@@ -25399,7 +25401,7 @@ function App() {
                                 readOnly: false
                             }, void 0, false, {
                                 fileName: "scr/App.jsx",
-                                lineNumber: 276,
+                                lineNumber: 280,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _components.QuizFeedback), {
@@ -25409,7 +25411,7 @@ function App() {
                                 settings: settings
                             }, void 0, false, {
                                 fileName: "scr/App.jsx",
-                                lineNumber: 289,
+                                lineNumber: 293,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _components.QuizControls), {
@@ -25419,25 +25421,25 @@ function App() {
                                 onNext: handleNext
                             }, void 0, false, {
                                 fileName: "scr/App.jsx",
-                                lineNumber: 296,
+                                lineNumber: 300,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "scr/App.jsx",
-                        lineNumber: 261,
+                        lineNumber: 264,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "scr/App.jsx",
-                lineNumber: 181,
+                lineNumber: 182,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "scr/App.jsx",
-        lineNumber: 169,
+        lineNumber: 170,
         columnNumber: 5
     }, this);
 }
@@ -32939,9 +32941,13 @@ const validateInput = (input, scenario, isAdvanced, showEnglish = false)=>{
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "VALIDATION_ERRORS", ()=>(0, _validationErrors.VALIDATION_ERRORS));
+parcelHelpers.export(exports, "VERB_EXPLANATIONS", ()=>(0, _verbExplanations.VERB_EXPLANATIONS));
+parcelHelpers.export(exports, "getVerbExplanation", ()=>(0, _verbExplanations.getVerbExplanation));
+parcelHelpers.export(exports, "getOtherVerbExplanations", ()=>(0, _verbExplanations.getOtherVerbExplanations));
 var _validationErrors = require("./validationErrors");
+var _verbExplanations = require("./verbExplanations");
 
-},{"./validationErrors":"5snAM","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"5snAM":[function(require,module,exports,__globalThis) {
+},{"./validationErrors":"5snAM","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT","./verbExplanations":"8QlBJ"}],"5snAM":[function(require,module,exports,__globalThis) {
 // --- Validation Error Messages (Localized) ---
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
@@ -33003,6 +33009,64 @@ const VALIDATION_ERRORS = {
         ja: "\u5B8C\u74A7\uFF01",
         en: 'Perfect!'
     }
+};
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"8QlBJ":[function(require,module,exports,__globalThis) {
+// --- Verb Explanation Data for Corrective Feedback ---
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "VERB_EXPLANATIONS", ()=>VERB_EXPLANATIONS);
+parcelHelpers.export(exports, "getVerbExplanation", ()=>getVerbExplanation);
+parcelHelpers.export(exports, "getOtherVerbExplanations", ()=>getOtherVerbExplanations);
+const VERB_EXPLANATIONS = [
+    {
+        verb: "morau",
+        verbMasu: "\u3082\u3089\u3044\u307E\u3059",
+        japanese_text: "\u8A71\u3057\u624B\u304C\u3001\u5BFE\u7B49\u307E\u305F\u306F\u76EE\u4E0B\u306E\u4EBA\u304B\u3089\u7269\u3092\u53D7\u3051\u53D6\u308B\u6642\u306B\u4F7F\u3046\u4E00\u822C\u7684\u306A\u52D5\u8A5E\u3067\u3059\u3002",
+        english_text: "The standard verb used when the speaker receives something from someone of equal or lower status."
+    },
+    {
+        verb: "itadaku",
+        verbMasu: "\u3044\u305F\u3060\u304D\u307E\u3059",
+        japanese_text: "\u300C\u3082\u3089\u3046\u300D\u306E\u8B19\u8B72\u8A9E\u3067\u3059\u3002\u8A71\u3057\u624B\u304C\u3001\u76EE\u4E0A\u306E\u4EBA\u304B\u3089\u7269\u3092\u53D7\u3051\u53D6\u308B\u6642\u306B\u4F7F\u3044\u3001\u76F8\u624B\u3092\u9AD8\u3081\u307E\u3059\u3002",
+        english_text: "The humble form of 'morau.' Used when the speaker receives something from a superior, elevating the giver."
+    },
+    {
+        verb: "yaru",
+        verbMasu: "\u3084\u308A\u307E\u3059",
+        japanese_text: "\u8A71\u3057\u624B\u304C\u3001\u81EA\u5206\u3088\u308A\u660E\u3089\u304B\u306B\u7ACB\u5834\u304C\u4F4E\u3044\u76F8\u624B\uFF08\u52D5\u7269\u3001\u690D\u7269\u3001\u8EAB\u5185\u306E\u5E74\u4E0B\u306A\u3069\uFF09\u306B\u7269\u3092\u4E0E\u3048\u308B\u6642\u306B\u4F7F\u3044\u307E\u3059\u3002",
+        english_text: "Used when the speaker gives something to a receiver of clearly lower status (e.g., animals, plants, or younger family members)."
+    },
+    {
+        verb: "ageru",
+        verbMasu: "\u3042\u3052\u307E\u3059",
+        japanese_text: "\u8A71\u3057\u624B\u304C\u3001\u5BFE\u7B49\u306E\u7ACB\u5834\u306E\u4EBA\u306B\u7269\u3092\u4E0E\u3048\u308B\u6642\u306B\u4F7F\u3046\u4E00\u822C\u7684\u306A\u52D5\u8A5E\u3067\u3059\u3002",
+        english_text: "The standard verb used when the speaker gives something to someone of equal status."
+    },
+    {
+        verb: "sashiageru",
+        verbMasu: "\u3055\u3057\u3042\u3052\u307E\u3059",
+        japanese_text: "\u300C\u3042\u3052\u308B\u300D\u306E\u8B19\u8B72\u8A9E\u3067\u3059\u3002\u8A71\u3057\u624B\u304C\u3001\u76EE\u4E0A\u306E\u4EBA\u306B\u7269\u3092\u4E0E\u3048\u308B\u6642\u306B\u4F7F\u3044\u3001\u3078\u308A\u304F\u3060\u3063\u305F\u8868\u73FE\u306B\u306A\u308A\u307E\u3059\u3002",
+        english_text: "The humble form of 'ageru.' Used when the speaker gives something to a superior, expressing deference."
+    },
+    {
+        verb: "kureru",
+        verbMasu: "\u304F\u308C\u307E\u3059",
+        japanese_text: "\u4ED6\u306E\u4EBA\u304C\u3001\u8A71\u3057\u624B\uFF08\u79C1\uFF09\u306B\u7269\u3092\u4E0E\u3048\u308B\u6642\u306B\u4F7F\u3044\u307E\u3059\u3002\u304F\u308C\u308B\u4EBA\u304C\u5BFE\u7B49\u307E\u305F\u306F\u76EE\u4E0B\u306E\u5834\u5408\u3067\u3059\u3002",
+        english_text: "Used when someone gives something to the speaker (me). The giver is of equal or lower status."
+    },
+    {
+        verb: "kudasaru",
+        verbMasu: "\u304F\u3060\u3055\u3044\u307E\u3059",
+        japanese_text: "\u300C\u304F\u308C\u308B\u300D\u306E\u5C0A\u656C\u8A9E\u3067\u3059\u3002\u76EE\u4E0A\u306E\u4EBA\u304C\u3001\u8A71\u3057\u624B\uFF08\u79C1\uFF09\u306B\u7269\u3092\u4E0E\u3048\u3066\u304F\u3060\u3055\u308B\u6642\u306B\u4F7F\u3044\u307E\u3059\u3002",
+        english_text: "The honorific form of 'kureru.' Used when a superior kindly gives something to the speaker (me)."
+    }
+];
+const getVerbExplanation = (verbKey)=>{
+    return VERB_EXPLANATIONS.find((v)=>v.verb === verbKey || v.verbMasu === verbKey);
+};
+const getOtherVerbExplanations = (correctVerbMasu)=>{
+    return VERB_EXPLANATIONS.filter((v)=>v.verbMasu !== correctVerbMasu);
 };
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"adMdN":[function(require,module,exports,__globalThis) {
@@ -36227,23 +36291,72 @@ var _react = require("react");
 var _reactDefault = parcelHelpers.interopDefault(_react);
 var _lucideReact = require("lucide-react");
 var _rubyText = require("./RubyText");
+// Hierarchy indicator mapping
+const getHierarchyIndicator = (hierarchy)=>{
+    switch(hierarchy){
+        case 'superior':
+            return {
+                symbol: '+',
+                color: 'text-amber-400',
+                bg: 'bg-amber-900/40'
+            };
+        case 'equal':
+            return {
+                symbol: '=',
+                color: 'text-blue-400',
+                bg: 'bg-blue-900/40'
+            };
+        case 'inferior':
+            return {
+                symbol: "\u2212",
+                color: 'text-teal-400',
+                bg: 'bg-teal-900/40'
+            };
+        case 'self':
+            return {
+                symbol: "\u25CF",
+                color: 'text-indigo-400',
+                bg: 'bg-indigo-900/40'
+            };
+        default:
+            return null;
+    }
+};
 function EntityDisplay({ entity, role, isPerspective, showEnglish, showFurigana }) {
     const EntityIcon = entity.icon || (0, _lucideReact.User);
+    const hierarchyIndicator = getHierarchyIndicator(entity.hierarchy);
     return /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
         className: `flex flex-col items-center p-3 rounded-xl border transition-all duration-300 w-36 ${isPerspective ? 'border-indigo-500 bg-[#2d2d2d] shadow-[0_0_15px_rgba(99,102,241,0.3)] transform scale-105' : 'border-[#333] bg-[#222] opacity-80'}`,
         children: [
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                className: `w-10 h-10 rounded-full flex items-center justify-center mb-2 ${entity.type === 'in' ? 'bg-indigo-900/50 text-indigo-400' : 'bg-orange-900/50 text-orange-400'}`,
-                children: /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(EntityIcon, {
-                    size: 18
-                }, void 0, false, {
-                    fileName: "scr/components/ui/EntityDisplay.jsx",
-                    lineNumber: 17,
-                    columnNumber: 9
-                }, this)
-            }, void 0, false, {
+                className: "relative",
+                children: [
+                    /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                        className: `w-10 h-10 rounded-full flex items-center justify-center mb-2 ${entity.type === 'in' ? 'bg-indigo-900/50 text-indigo-400' : 'bg-orange-900/50 text-orange-400'}`,
+                        children: /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(EntityIcon, {
+                            size: 18
+                        }, void 0, false, {
+                            fileName: "scr/components/ui/EntityDisplay.jsx",
+                            lineNumber: 30,
+                            columnNumber: 11
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "scr/components/ui/EntityDisplay.jsx",
+                        lineNumber: 27,
+                        columnNumber: 9
+                    }, this),
+                    hierarchyIndicator && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                        className: `absolute -top-1 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${hierarchyIndicator.bg} ${hierarchyIndicator.color} border border-current/30`,
+                        children: hierarchyIndicator.symbol
+                    }, void 0, false, {
+                        fileName: "scr/components/ui/EntityDisplay.jsx",
+                        lineNumber: 34,
+                        columnNumber: 11
+                    }, this)
+                ]
+            }, void 0, true, {
                 fileName: "scr/components/ui/EntityDisplay.jsx",
-                lineNumber: 14,
+                lineNumber: 26,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _rubyText.RubyText), {
@@ -36252,7 +36365,7 @@ function EntityDisplay({ entity, role, isPerspective, showEnglish, showFurigana 
                 textClass: "text-lg font-bold text-gray-200"
             }, void 0, false, {
                 fileName: "scr/components/ui/EntityDisplay.jsx",
-                lineNumber: 19,
+                lineNumber: 39,
                 columnNumber: 7
             }, this),
             showEnglish && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -36260,7 +36373,7 @@ function EntityDisplay({ entity, role, isPerspective, showEnglish, showFurigana 
                 children: entity.label
             }, void 0, false, {
                 fileName: "scr/components/ui/EntityDisplay.jsx",
-                lineNumber: 25,
+                lineNumber: 45,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -36270,7 +36383,7 @@ function EntityDisplay({ entity, role, isPerspective, showEnglish, showFurigana 
                         children: role === 'giver' ? "\u8D08\u308A\u624B" : "\u53D7\u3051\u624B"
                     }, void 0, false, {
                         fileName: "scr/components/ui/EntityDisplay.jsx",
-                        lineNumber: 30,
+                        lineNumber: 50,
                         columnNumber: 9
                     }, this),
                     showEnglish && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -36278,13 +36391,13 @@ function EntityDisplay({ entity, role, isPerspective, showEnglish, showFurigana 
                         children: role === 'giver' ? 'Giver' : 'Receiver'
                     }, void 0, false, {
                         fileName: "scr/components/ui/EntityDisplay.jsx",
-                        lineNumber: 32,
+                        lineNumber: 52,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "scr/components/ui/EntityDisplay.jsx",
-                lineNumber: 27,
+                lineNumber: 47,
                 columnNumber: 7
             }, this),
             isPerspective && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -36295,20 +36408,20 @@ function EntityDisplay({ entity, role, isPerspective, showEnglish, showFurigana 
                         className: "mr-1"
                     }, void 0, false, {
                         fileName: "scr/components/ui/EntityDisplay.jsx",
-                        lineNumber: 37,
+                        lineNumber: 57,
                         columnNumber: 11
                     }, this),
                     " \u4E3B\u984C"
                 ]
             }, void 0, true, {
                 fileName: "scr/components/ui/EntityDisplay.jsx",
-                lineNumber: 36,
+                lineNumber: 56,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "scr/components/ui/EntityDisplay.jsx",
-        lineNumber: 9,
+        lineNumber: 21,
         columnNumber: 5
     }, this);
 }
@@ -36412,9 +36525,27 @@ var _jsxDevRuntime = require("react/jsx-dev-runtime");
 var _react = require("react");
 var _reactDefault = parcelHelpers.interopDefault(_react);
 var _ui = require("../ui");
-function QuizFeedback({ feedback, showAnswer, scenario, settings }) {
+var _constants = require("../../constants");
+function QuizFeedback({ feedback, showAnswer, scenario, settings, userInput }) {
+    // Get the correct verb explanation
+    const correctVerbExplanation = scenario?.requiredVerb ? (0, _constants.getVerbExplanation)(scenario.requiredVerb) : null;
+    // Map verb keys to settings filter keys
+    const verbToFilterKey = {
+        morau: 'moraimasu',
+        itadaku: 'itadakimasu',
+        yaru: 'yarimasu',
+        ageru: 'agemasu',
+        sashiageru: 'sashiagemasu',
+        kureru: 'kuremasu',
+        kudasaru: 'kudasaimasu'
+    };
+    // Get other verb explanations filtered by user's verb settings
+    const otherVerbExplanations = scenario?.requiredVerb ? (0, _constants.getOtherVerbExplanations)(scenario.requiredVerb).filter((verbInfo)=>{
+        const filterKey = verbToFilterKey[verbInfo.verb];
+        return filterKey && settings.verbFilters?.[filterKey] === true;
+    }) : [];
     return /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-        className: "min-h-[40px] flex flex-col items-center",
+        className: "min-h-[40px] flex flex-col items-center w-full max-w-2xl",
         children: [
             feedback && !showAnswer && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                 className: "text-center animate-in fade-in slide-in-from-bottom-2",
@@ -36424,7 +36555,7 @@ function QuizFeedback({ feedback, showAnswer, scenario, settings }) {
                         children: feedback.text
                     }, void 0, false, {
                         fileName: "scr/components/quiz/QuizFeedback.jsx",
-                        lineNumber: 14,
+                        lineNumber: 40,
                         columnNumber: 11
                     }, this),
                     feedback.subtitle && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
@@ -36432,24 +36563,24 @@ function QuizFeedback({ feedback, showAnswer, scenario, settings }) {
                         children: feedback.subtitle
                     }, void 0, false, {
                         fileName: "scr/components/quiz/QuizFeedback.jsx",
-                        lineNumber: 18,
+                        lineNumber: 44,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "scr/components/quiz/QuizFeedback.jsx",
-                lineNumber: 13,
+                lineNumber: 39,
                 columnNumber: 9
             }, this),
             showAnswer && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                className: "text-center animate-in fade-in slide-in-from-bottom-2 space-y-2",
+                className: "text-center animate-in fade-in slide-in-from-bottom-2 space-y-4 w-full",
                 children: [
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
                         className: "text-gray-400 text-xs font-bold",
                         children: "\u6B63\u3057\u3044\u56DE\u7B54"
                     }, void 0, false, {
                         fileName: "scr/components/quiz/QuizFeedback.jsx",
-                        lineNumber: 24,
+                        lineNumber: 50,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
@@ -36467,12 +36598,12 @@ function QuizFeedback({ feedback, showAnswer, scenario, settings }) {
                                     textClass: scenario.perspective.id === scenario.giver.id ? 'text-base font-bold text-green-400' : 'text-base font-bold text-purple-400'
                                 }, void 0, false, {
                                     fileName: "scr/components/quiz/QuizFeedback.jsx",
-                                    lineNumber: 28,
+                                    lineNumber: 54,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "scr/components/quiz/QuizFeedback.jsx",
-                                lineNumber: 27,
+                                lineNumber: 53,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -36480,7 +36611,7 @@ function QuizFeedback({ feedback, showAnswer, scenario, settings }) {
                                 children: "\u306F"
                             }, void 0, false, {
                                 fileName: "scr/components/quiz/QuizFeedback.jsx",
-                                lineNumber: 34,
+                                lineNumber: 60,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -36491,12 +36622,12 @@ function QuizFeedback({ feedback, showAnswer, scenario, settings }) {
                                     textClass: scenario.perspective.id === scenario.giver.id ? 'text-base font-bold text-purple-400' : 'text-base font-bold text-green-400'
                                 }, void 0, false, {
                                     fileName: "scr/components/quiz/QuizFeedback.jsx",
-                                    lineNumber: 37,
+                                    lineNumber: 63,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "scr/components/quiz/QuizFeedback.jsx",
-                                lineNumber: 36,
+                                lineNumber: 62,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -36504,7 +36635,7 @@ function QuizFeedback({ feedback, showAnswer, scenario, settings }) {
                                 children: scenario.requiredParticle || "\u306B"
                             }, void 0, false, {
                                 fileName: "scr/components/quiz/QuizFeedback.jsx",
-                                lineNumber: 43,
+                                lineNumber: 69,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -36515,12 +36646,12 @@ function QuizFeedback({ feedback, showAnswer, scenario, settings }) {
                                     textClass: "text-base font-bold text-yellow-400"
                                 }, void 0, false, {
                                     fileName: "scr/components/quiz/QuizFeedback.jsx",
-                                    lineNumber: 46,
+                                    lineNumber: 72,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "scr/components/quiz/QuizFeedback.jsx",
-                                lineNumber: 45,
+                                lineNumber: 71,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -36528,7 +36659,7 @@ function QuizFeedback({ feedback, showAnswer, scenario, settings }) {
                                 children: "\u3092"
                             }, void 0, false, {
                                 fileName: "scr/components/quiz/QuizFeedback.jsx",
-                                lineNumber: 52,
+                                lineNumber: 78,
                                 columnNumber: 13
                             }, this),
                             settings.advancedMode && scenario.action && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -36539,12 +36670,12 @@ function QuizFeedback({ feedback, showAnswer, scenario, settings }) {
                                     textClass: "text-base font-bold text-red-700"
                                 }, void 0, false, {
                                     fileName: "scr/components/quiz/QuizFeedback.jsx",
-                                    lineNumber: 56,
+                                    lineNumber: 82,
                                     columnNumber: 17
                                 }, this)
                             }, void 0, false, {
                                 fileName: "scr/components/quiz/QuizFeedback.jsx",
-                                lineNumber: 55,
+                                lineNumber: 81,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -36552,13 +36683,13 @@ function QuizFeedback({ feedback, showAnswer, scenario, settings }) {
                                 children: scenario.requiredVerb
                             }, void 0, false, {
                                 fileName: "scr/components/quiz/QuizFeedback.jsx",
-                                lineNumber: 64,
+                                lineNumber: 90,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "scr/components/quiz/QuizFeedback.jsx",
-                        lineNumber: 25,
+                        lineNumber: 51,
                         columnNumber: 11
                     }, this),
                     settings.advancedMode && scenario.action && settings.englishLabels && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
@@ -36570,19 +36701,120 @@ function QuizFeedback({ feedback, showAnswer, scenario, settings }) {
                         ]
                     }, void 0, true, {
                         fileName: "scr/components/quiz/QuizFeedback.jsx",
-                        lineNumber: 69,
+                        lineNumber: 95,
+                        columnNumber: 13
+                    }, this),
+                    correctVerbExplanation && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                        className: "mt-4 p-3 bg-[#252525] rounded-lg border border-blue-500/30",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
+                                className: "text-blue-400 text-xs font-bold mb-2",
+                                children: [
+                                    "\u306A\u305C\u300C",
+                                    scenario.requiredVerb,
+                                    "\u300D\uFF1F"
+                                ]
+                            }, void 0, true, {
+                                fileName: "scr/components/quiz/QuizFeedback.jsx",
+                                lineNumber: 101,
+                                columnNumber: 15
+                            }, this),
+                            /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
+                                className: "text-gray-100 text-sm leading-relaxed",
+                                children: correctVerbExplanation.japanese_text
+                            }, void 0, false, {
+                                fileName: "scr/components/quiz/QuizFeedback.jsx",
+                                lineNumber: 104,
+                                columnNumber: 15
+                            }, this),
+                            settings.englishLabels && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
+                                className: "text-gray-300 text-xs mt-2 italic",
+                                children: correctVerbExplanation.english_text
+                            }, void 0, false, {
+                                fileName: "scr/components/quiz/QuizFeedback.jsx",
+                                lineNumber: 108,
+                                columnNumber: 17
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "scr/components/quiz/QuizFeedback.jsx",
+                        lineNumber: 100,
+                        columnNumber: 13
+                    }, this),
+                    settings.hints && otherVerbExplanations.length > 0 && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                        className: "mt-4 p-3 bg-[#1e1e1e] rounded-lg border border-gray-700",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
+                                className: "text-gray-200 text-xs font-bold mb-3",
+                                children: "\u4ED6\u306E\u52D5\u8A5E\u3068\u306E\u6BD4\u8F03"
+                            }, void 0, false, {
+                                fileName: "scr/components/quiz/QuizFeedback.jsx",
+                                lineNumber: 119,
+                                columnNumber: 15
+                            }, this),
+                            /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                                className: "space-y-3 text-left",
+                                children: otherVerbExplanations.map((verbInfo)=>/*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                                        className: "p-2 bg-[#252525] rounded border border-gray-600/50",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
+                                                className: "text-gray-100 text-xs font-semibold mb-1",
+                                                children: /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
+                                                    className: "text-rose-400",
+                                                    children: verbInfo.verbMasu
+                                                }, void 0, false, {
+                                                    fileName: "scr/components/quiz/QuizFeedback.jsx",
+                                                    lineNumber: 129,
+                                                    columnNumber: 23
+                                                }, this)
+                                            }, void 0, false, {
+                                                fileName: "scr/components/quiz/QuizFeedback.jsx",
+                                                lineNumber: 128,
+                                                columnNumber: 21
+                                            }, this),
+                                            /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
+                                                className: "text-gray-200 text-xs leading-relaxed",
+                                                children: verbInfo.japanese_text
+                                            }, void 0, false, {
+                                                fileName: "scr/components/quiz/QuizFeedback.jsx",
+                                                lineNumber: 131,
+                                                columnNumber: 21
+                                            }, this),
+                                            settings.englishLabels && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
+                                                className: "text-gray-300 text-xs mt-1 italic",
+                                                children: verbInfo.english_text
+                                            }, void 0, false, {
+                                                fileName: "scr/components/quiz/QuizFeedback.jsx",
+                                                lineNumber: 135,
+                                                columnNumber: 23
+                                            }, this)
+                                        ]
+                                    }, verbInfo.verb, true, {
+                                        fileName: "scr/components/quiz/QuizFeedback.jsx",
+                                        lineNumber: 124,
+                                        columnNumber: 19
+                                    }, this))
+                            }, void 0, false, {
+                                fileName: "scr/components/quiz/QuizFeedback.jsx",
+                                lineNumber: 122,
+                                columnNumber: 15
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "scr/components/quiz/QuizFeedback.jsx",
+                        lineNumber: 118,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "scr/components/quiz/QuizFeedback.jsx",
-                lineNumber: 23,
+                lineNumber: 49,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "scr/components/quiz/QuizFeedback.jsx",
-        lineNumber: 11,
+        lineNumber: 37,
         columnNumber: 5
     }, this);
 }
@@ -36595,7 +36827,7 @@ $RefreshReg$(_c, "QuizFeedback");
   globalThis.$RefreshReg$ = prevRefreshReg;
   globalThis.$RefreshSig$ = prevRefreshSig;
 }
-},{"react/jsx-dev-runtime":"dVPUn","react":"jMk1U","../ui":"lK7oT","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT","@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"7h6Pi"}],"iI0Ba":[function(require,module,exports,__globalThis) {
+},{"react/jsx-dev-runtime":"dVPUn","react":"jMk1U","../ui":"lK7oT","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT","@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"7h6Pi","../../constants":"lSKWy"}],"iI0Ba":[function(require,module,exports,__globalThis) {
 var $parcel$ReactRefreshHelpers$749d = require("@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js");
 $parcel$ReactRefreshHelpers$749d.init();
 var prevRefreshReg = globalThis.$RefreshReg$;
@@ -36891,7 +37123,7 @@ function TokenBank({ tokens, onDragStart, onClick, draggedToken, showEnglish, is
     }, this);
 }
 _c2 = TokenBank;
-function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEnglish, isLocked = false, shouldReset = false, onResetComplete, verbFilters = {} }) {
+function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEnglish, isLocked = false, shouldReset = false, onResetComplete, verbFilters = {}, showAnswer = false }) {
     _s();
     const [sentence, setSentence] = (0, _react.useState)([]);
     const [draggedToken, setDraggedToken] = (0, _react.useState)(null);
@@ -37078,9 +37310,9 @@ function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEnglish, isL
     const titleJP = "\u6587\u3092\u4F5C\u6210";
     const titleEN = 'Sentence Builder';
     return /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-        className: "w-full bg-[#252525] rounded-2xl border border-[#333] p-4 space-y-4",
+        className: `w-full bg-[#252525] rounded-2xl border border-[#333] p-4 ${showAnswer ? 'space-y-2' : 'space-y-4'}`,
         children: [
-            /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+            !showAnswer && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                 className: "flex items-center justify-between",
                 children: [
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("h3", {
@@ -37095,42 +37327,42 @@ function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEnglish, isL
                                 ]
                             }, void 0, true, {
                                 fileName: "scr/components/quiz/SentenceBuilder.jsx",
-                                lineNumber: 318,
-                                columnNumber: 36
+                                lineNumber: 319,
+                                columnNumber: 38
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "scr/components/quiz/SentenceBuilder.jsx",
-                        lineNumber: 317,
-                        columnNumber: 9
+                        lineNumber: 318,
+                        columnNumber: 11
                     }, this),
                     !isLocked && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("button", {
                         onClick: handleReset,
                         disabled: sentence.length === 0,
                         className: `
-              flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all
-              ${sentence.length > 0 ? 'text-white bg-[#404040] hover:bg-[#4a4a4a] cursor-pointer' : 'text-gray-600 bg-[#2a2a2a] cursor-not-allowed'}
-            `,
+                flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all
+                ${sentence.length > 0 ? 'text-white bg-[#404040] hover:bg-[#4a4a4a] cursor-pointer' : 'text-gray-600 bg-[#2a2a2a] cursor-not-allowed'}
+              `,
                         children: [
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _lucideReact.RotateCcw), {
                                 size: 12
                             }, void 0, false, {
                                 fileName: "scr/components/quiz/SentenceBuilder.jsx",
-                                lineNumber: 333,
-                                columnNumber: 13
+                                lineNumber: 334,
+                                columnNumber: 15
                             }, this),
                             "\u30EA\u30BB\u30C3\u30C8"
                         ]
                     }, void 0, true, {
                         fileName: "scr/components/quiz/SentenceBuilder.jsx",
-                        lineNumber: 322,
-                        columnNumber: 11
+                        lineNumber: 323,
+                        columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "scr/components/quiz/SentenceBuilder.jsx",
-                lineNumber: 316,
-                columnNumber: 7
+                lineNumber: 317,
+                columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(DropZone, {
                 onDrop: handleDrop,
@@ -37143,16 +37375,16 @@ function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEnglish, isL
                         onRemove: handleRemoveToken,
                         isDragging: draggedToken?.instanceId === token.instanceId,
                         isInSentence: true,
-                        showEnglish: showEnglish,
+                        showEnglish: showAnswer ? false : showEnglish,
                         isLocked: isLocked
                     }, token.instanceId, false, {
                         fileName: "scr/components/quiz/SentenceBuilder.jsx",
-                        lineNumber: 347,
+                        lineNumber: 349,
                         columnNumber: 11
                     }, this))
             }, void 0, false, {
                 fileName: "scr/components/quiz/SentenceBuilder.jsx",
-                lineNumber: 340,
+                lineNumber: 342,
                 columnNumber: 7
             }, this),
             !isLocked && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -37166,12 +37398,12 @@ function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEnglish, isL
                     isLocked: isLocked
                 }, void 0, false, {
                     fileName: "scr/components/quiz/SentenceBuilder.jsx",
-                    lineNumber: 363,
+                    lineNumber: 365,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "scr/components/quiz/SentenceBuilder.jsx",
-                lineNumber: 362,
+                lineNumber: 364,
                 columnNumber: 9
             }, this),
             !isLocked && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("button", {
@@ -37181,7 +37413,7 @@ function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEnglish, isL
                 children: "\u30C1\u30A7\u30C3\u30AF"
             }, void 0, false, {
                 fileName: "scr/components/quiz/SentenceBuilder.jsx",
-                lineNumber: 376,
+                lineNumber: 378,
                 columnNumber: 9
             }, this)
         ]
@@ -37890,6 +38122,6 @@ _s(useInputHandler, "P0U2HpB8jyysCZZEh/2E/wxKpnw=");
   globalThis.$RefreshReg$ = prevRefreshReg;
   globalThis.$RefreshSig$ = prevRefreshSig;
 }
-},{"react":"jMk1U","../utils":"iapYw","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT","@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"7h6Pi"}]},["cULE0","gINJ2"], "gINJ2", "parcelRequireeb17", {}, null, null, "http://localhost:1234")
+},{"react":"jMk1U","../utils":"iapYw","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT","@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"7h6Pi"}]},["fsLVC","gINJ2"], "gINJ2", "parcelRequireeb17", {}, null, null, "http://localhost:37218")
 
 //# sourceMappingURL=scr.1df5e0fd.js.map
