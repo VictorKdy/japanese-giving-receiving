@@ -207,11 +207,11 @@
       });
     }
   }
-})({"CFpQh":[function(require,module,exports,__globalThis) {
+})({"fdLei":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
-var HMR_SERVER_PORT = 29477;
+var HMR_SERVER_PORT = 1234;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "439701173a9199ea";
 var HMR_USE_SSE = false;
@@ -907,6 +907,100 @@ const romajiToHiragana = (text)=>{
 const isValidJapaneseInput = (str)=>{
     // Allow hiragana, katakana, kanji, punctuation, and partial romaji being typed
     return /^[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf\u3001-\u3003\u3005\u3007-\u3011a-zA-Z\s\-.,!?！？。、ー]*$/.test(str);
+};
+// Helper to normalize Katakana to Hiragana for comparison
+// Unicode Shift: Katakana (30A0-30FF) - 0x60 = Hiragana (3040-309F)
+const toHiragana = (str)=>{
+    return str.replace(/[\u30a1-\u30f6]/g, (match)=>{
+        const chr = match.charCodeAt(0) - 0x60;
+        return String.fromCharCode(chr);
+    });
+};
+// Check if string contains only Hiragana characters (strict validation)
+const isHiraganaOnly = (str)=>/^[\u3041-\u3096]+$/u.test(str);
+// --- Validation Error Messages (Localized) ---
+const VALIDATION_ERRORS = {
+    sentenceTooShort: {
+        ja: "\u6587\u304C\u77ED\u3059\u304E\u307E\u3059\u3002",
+        en: 'Sentence is too short.'
+    },
+    missingTopic: {
+        ja: (name)=>`\u{4E3B}\u{984C}\u{304B}\u{3089}\u{59CB}\u{3081}\u{3066}\u{304F}\u{3060}\u{3055}\u{3044}\u{FF1A}${name}\u{306F}...`,
+        en: (name)=>`Start with the topic: ${name}\u{306F}...`
+    },
+    missingObject: {
+        ja: (name)=>`\u{76EE}\u{7684}\u{8A9E}\u{3092}\u{542B}\u{3081}\u{3066}\u{304F}\u{3060}\u{3055}\u{3044}\u{FF1A}${name}\u{3092}...`,
+        en: (name)=>`Include the object: ${name}\u{3092}...`
+    },
+    noActionDefined: {
+        ja: "\u30A8\u30E9\u30FC\uFF1A\u30A2\u30AF\u30B7\u30E7\u30F3\u304C\u5B9A\u7FA9\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002",
+        en: 'Error: No action defined.'
+    },
+    wrongTeForm: {
+        ja: (te, label)=>`\u{6B63}\u{3057}\u{3044}\u{3066}\u{5F62}\u{3092}\u{4F7F}\u{3063}\u{3066}\u{304F}\u{3060}\u{3055}\u{3044}\u{FF1A}${te}\u{FF08}${label}\u{FF09}`,
+        en: (te, label)=>`Use the correct Te-form action: ${te} (${label})`
+    },
+    teFormConnection: {
+        ja: (te, verb)=>`\u{3066}\u{5F62}\u{3092}\u{52D5}\u{8A5E}\u{306B}\u{76F4}\u{63A5}\u{3064}\u{306A}\u{3052}\u{3066}\u{304F}\u{3060}\u{3055}\u{3044}\u{FF1A}${te}${verb}`,
+        en: (te, verb)=>`Connect the te-form directly to the verb: ${te}${verb}`
+    },
+    useKuremasu: {
+        ja: "\u81EA\u5206\u304C\u3082\u3089\u3046\u6642\u306F\u300C\u304F\u308C\u307E\u3059\u300D\u3092\u4F7F\u3044\u307E\u3059\u3002",
+        en: "Use '\u304F\u308C\u307E\u3059' when someone gives to YOU."
+    },
+    useAgemasu: {
+        ja: "\u4ED6\u306E\u4EBA\u306B\u3042\u3052\u308B\u6642\u306F\u300C\u3042\u3052\u307E\u3059\u300D\u3092\u4F7F\u3044\u307E\u3059\u3002",
+        en: "Use '\u3042\u3052\u307E\u3059' when the subject gives to someone else."
+    },
+    subjectIsGiving: {
+        ja: "\u4E3B\u8A9E\u306F\u3042\u3052\u308B\u5074\u3067\u3059\u3002\u300C\u3082\u3089\u3044\u307E\u3059\u300D\u306F\u4F7F\u3044\u307E\u305B\u3093\u3002",
+        en: "Subject is giving, not receiving. Don't use '\u3082\u3089\u3044\u307E\u3059'."
+    },
+    subjectIsReceiving: {
+        ja: "\u4E3B\u8A9E\u306F\u3082\u3089\u3046\u5074\u3067\u3059\u3002\u300C\u3082\u3089\u3044\u307E\u3059\u300D\u3092\u4F7F\u3063\u3066\u304F\u3060\u3055\u3044\u3002",
+        en: "Subject is receiving. Use '\u3082\u3089\u3044\u307E\u3059'."
+    },
+    incorrectVerb: {
+        ja: (verb)=>`\u{88DC}\u{52A9}\u{52D5}\u{8A5E}\u{304C}\u{9055}\u{3044}\u{307E}\u{3059}\u{3002}\u{6B63}\u{89E3}\u{FF1A}...${verb}`,
+        en: (verb)=>`Incorrect auxiliary verb. Expected: ...${verb}`
+    },
+    markSource: {
+        ja: (name)=>`\u{51FA}\u{6240}\u{FF08}${name}\u{FF09}\u{306B}\u{300C}\u{306B}\u{300D}\u{304B}\u{300C}\u{304B}\u{3089}\u{300D}\u{3092}\u{3064}\u{3051}\u{3066}\u{304F}\u{3060}\u{3055}\u{3044}\u{3002}`,
+        en: (name)=>`Mark the source (${name}) with '\u{306B}' or '\u{304B}\u{3089}'.`
+    },
+    markRecipient: {
+        ja: (name)=>`\u{53D7}\u{53D6}\u{4EBA}\u{FF08}${name}\u{FF09}\u{306B}\u{300C}\u{306B}\u{300D}\u{3092}\u{3064}\u{3051}\u{3066}\u{304F}\u{3060}\u{3055}\u{3044}\u{3002}`,
+        en: (name)=>`Mark the recipient (${name}) with '\u{306B}'.`
+    },
+    perfect: {
+        ja: "\u5B8C\u74A7\uFF01",
+        en: 'Perfect!'
+    }
+};
+// Helper to get localized error message
+const getErrorMessage = (errorKey, showEnglish, ...args)=>{
+    const error = VALIDATION_ERRORS[errorKey];
+    if (!error) return '';
+    const jaText = typeof error.ja === 'function' ? error.ja(...args) : error.ja;
+    const enText = typeof error.en === 'function' ? error.en(...args) : error.en;
+    if (showEnglish) return {
+        primary: jaText,
+        subtitle: enText
+    };
+    return {
+        primary: jaText,
+        subtitle: null
+    };
+};
+// Helper to get item reading in hiragana from furigana data
+const getItemReading = (item)=>{
+    if (!item.furigana) return item.name;
+    return item.furigana.map((f)=>f.rt || toHiragana(f.text)).join('');
+};
+// Helper to get entity reading in hiragana from furigana data  
+const getEntityReading = (entity)=>{
+    if (!entity.furigana) return entity.name;
+    return entity.furigana.map((f)=>f.rt || toHiragana(f.text)).join('');
 };
 // --- Custom Hooks ---
 // useClickOutside - detects clicks outside a ref element
@@ -1637,107 +1731,167 @@ const ITEMS = [
 ];
 // --- Helper Functions ---
 const normalizeInput = (str)=>{
-    return str.replace(/\s+/g, '').trim();
+    // Convert to Hiragana and remove spaces
+    const hiragana = toHiragana(str);
+    return hiragana.replace(/\s+/g, '').trim();
 };
-const validateInput = (input, scenario, isAdvanced)=>{
+const validateInput = (input, scenario, isAdvanced, showEnglish = false)=>{
+    // Convert input to Hiragana before validation to allow Kanji/Katakana input
     const cleanInput = normalizeInput(input);
-    if (cleanInput.length < 5) return {
-        valid: false,
-        message: "Sentence is too short."
-    };
+    if (cleanInput.length < 5) {
+        const msg = getErrorMessage('sentenceTooShort', showEnglish);
+        return {
+            valid: false,
+            message: msg.primary,
+            subtitle: msg.subtitle
+        };
+    }
     const { giver, receiver, item, perspective, action } = scenario;
+    // Get hiragana readings for flexible matching
+    const perspectiveReading = getEntityReading(perspective);
+    const itemReading = getItemReading(item);
     // 1. Identify Topic/Perspective (Must use 'は')
-    const topicPhrase = perspective.name + "\u306F";
-    if (!cleanInput.includes(topicPhrase)) return {
-        valid: false,
-        message: `Start with the topic: ${perspective.name}\u{306F}...`
-    };
+    // Check both Kanji and Hiragana versions
+    const topicPhraseKanji = perspective.name + "\u306F";
+    const topicPhraseHiragana = perspectiveReading + "\u306F";
+    const hasTopic = cleanInput.includes(topicPhraseKanji) || cleanInput.includes(topicPhraseHiragana);
+    if (!hasTopic) {
+        const msg = getErrorMessage('missingTopic', showEnglish, perspective.name);
+        return {
+            valid: false,
+            message: msg.primary,
+            subtitle: msg.subtitle
+        };
+    }
     // 2. Identify Item (Must use 'を')
-    const itemPhrase = item.name + "\u3092";
-    if (!cleanInput.includes(itemPhrase)) return {
-        valid: false,
-        message: `Include the object: ${item.name}\u{3092}...`
-    };
+    // Check both Kanji and Hiragana versions, also check for が particle
+    const itemPhraseWoKanji = item.name + "\u3092";
+    const itemPhraseWoHiragana = itemReading + "\u3092";
+    const itemPhraseGaKanji = item.name + "\u304C";
+    const itemPhraseGaHiragana = itemReading + "\u304C";
+    const hasItem = cleanInput.includes(itemPhraseWoKanji) || cleanInput.includes(itemPhraseWoHiragana) || cleanInput.includes(itemPhraseGaKanji) || cleanInput.includes(itemPhraseGaHiragana);
+    if (!hasItem) {
+        const msg = getErrorMessage('missingObject', showEnglish, item.name);
+        return {
+            valid: false,
+            message: msg.primary,
+            subtitle: msg.subtitle
+        };
+    }
     // 3. Logic & Verb Check (Auxiliary)
     const isSubjectGiver = perspective.id === giver.id;
     let requiredVerb = '';
-    let interactionTargetName = '';
+    let interactionTarget = isSubjectGiver ? receiver : giver;
+    let interactionTargetName = interactionTarget.name;
+    let interactionTargetReading = getEntityReading(interactionTarget);
     if (isSubjectGiver) {
         // Subject is Giver.
-        if (receiver.id === 'me') {
-            requiredVerb = "\u304F\u308C\u307E\u3059";
-            interactionTargetName = receiver.name;
-        } else {
-            requiredVerb = "\u3042\u3052\u307E\u3059";
-            interactionTargetName = receiver.name;
-        }
-    } else {
-        // Subject is Receiver.
-        requiredVerb = "\u3082\u3089\u3044\u307E\u3059";
-        interactionTargetName = giver.name;
-    }
+        if (receiver.id === 'me') requiredVerb = "\u304F\u308C\u307E\u3059";
+        else requiredVerb = "\u3042\u3052\u307E\u3059";
+    } else // Subject is Receiver.
+    requiredVerb = "\u3082\u3089\u3044\u307E\u3059";
     // 4. Advanced Mode: Te-Form Check
     if (isAdvanced) {
-        if (!action) return {
-            valid: false,
-            message: "Error: No action defined."
-        };
-        if (!cleanInput.includes(action.te)) return {
-            valid: false,
-            message: `Use the correct Te-form action: ${action.te} (${action.label})`
-        };
+        if (!action) {
+            const msg = getErrorMessage('noActionDefined', showEnglish);
+            return {
+                valid: false,
+                message: msg.primary,
+                subtitle: msg.subtitle
+            };
+        }
+        if (!cleanInput.includes(action.te)) {
+            const msg = getErrorMessage('wrongTeForm', showEnglish, action.te, action.label);
+            return {
+                valid: false,
+                message: msg.primary,
+                subtitle: msg.subtitle
+            };
+        }
         // Check that te-form appears directly before the auxiliary verb
         const teFormWithVerb = action.te + requiredVerb;
-        if (!cleanInput.includes(teFormWithVerb)) return {
-            valid: false,
-            message: `Connect the te-form directly to the verb: ${action.te}${requiredVerb}`
-        };
+        if (!cleanInput.includes(teFormWithVerb)) {
+            const msg = getErrorMessage('teFormConnection', showEnglish, action.te, requiredVerb);
+            return {
+                valid: false,
+                message: msg.primary,
+                subtitle: msg.subtitle
+            };
+        }
     }
     // Check Verb
     if (!cleanInput.includes(requiredVerb)) {
         const usedAgeru = cleanInput.includes("\u3042\u3052\u307E\u3059");
         const usedKureru = cleanInput.includes("\u304F\u308C\u307E\u3059");
         const usedMorau = cleanInput.includes("\u3082\u3089\u3044\u307E\u3059");
-        if (requiredVerb === "\u304F\u308C\u307E\u3059" && usedAgeru) return {
-            valid: false,
-            message: "Use '\u304F\u308C\u307E\u3059' when someone gives to YOU."
-        };
-        if (requiredVerb === "\u3042\u3052\u307E\u3059" && usedKureru) return {
-            valid: false,
-            message: "Use '\u3042\u3052\u307E\u3059' when the subject gives to someone else."
-        };
-        if (isSubjectGiver && usedMorau) return {
-            valid: false,
-            message: "Subject is giving, not receiving. Don't use '\u3082\u3089\u3044\u307E\u3059'."
-        };
-        if (!isSubjectGiver && !usedMorau) return {
-            valid: false,
-            message: "Subject is receiving. Use '\u3082\u3089\u3044\u307E\u3059'."
-        };
+        if (requiredVerb === "\u304F\u308C\u307E\u3059" && usedAgeru) {
+            const msg = getErrorMessage('useKuremasu', showEnglish);
+            return {
+                valid: false,
+                message: msg.primary,
+                subtitle: msg.subtitle
+            };
+        }
+        if (requiredVerb === "\u3042\u3052\u307E\u3059" && usedKureru) {
+            const msg = getErrorMessage('useAgemasu', showEnglish);
+            return {
+                valid: false,
+                message: msg.primary,
+                subtitle: msg.subtitle
+            };
+        }
+        if (isSubjectGiver && usedMorau) {
+            const msg = getErrorMessage('subjectIsGiving', showEnglish);
+            return {
+                valid: false,
+                message: msg.primary,
+                subtitle: msg.subtitle
+            };
+        }
+        if (!isSubjectGiver && !usedMorau) {
+            const msg = getErrorMessage('subjectIsReceiving', showEnglish);
+            return {
+                valid: false,
+                message: msg.primary,
+                subtitle: msg.subtitle
+            };
+        }
+        const msg = getErrorMessage('incorrectVerb', showEnglish, requiredVerb);
         return {
             valid: false,
-            message: `Incorrect auxiliary verb. Expected: ...${requiredVerb}`
+            message: msg.primary,
+            subtitle: msg.subtitle
         };
     }
-    // Check Interaction Target + Particle
-    const targetWithNi = interactionTargetName + "\u306B";
-    const targetWithKara = interactionTargetName + "\u304B\u3089";
-    const hasNi = cleanInput.includes(targetWithNi);
-    const hasKara = cleanInput.includes(targetWithKara);
+    // Check Interaction Target + Particle (check both Kanji and Hiragana)
+    const targetWithNiKanji = interactionTargetName + "\u306B";
+    const targetWithNiHiragana = interactionTargetReading + "\u306B";
+    const targetWithKaraKanji = interactionTargetName + "\u304B\u3089";
+    const targetWithKaraHiragana = interactionTargetReading + "\u304B\u3089";
+    const hasNi = cleanInput.includes(targetWithNiKanji) || cleanInput.includes(targetWithNiHiragana);
+    const hasKara = cleanInput.includes(targetWithKaraKanji) || cleanInput.includes(targetWithKaraHiragana);
     if (requiredVerb === "\u3082\u3089\u3044\u307E\u3059") {
-        if (!hasNi && !hasKara) return {
+        if (!hasNi && !hasKara) {
+            const msg = getErrorMessage('markSource', showEnglish, interactionTargetName);
+            return {
+                valid: false,
+                message: msg.primary,
+                subtitle: msg.subtitle
+            };
+        }
+    } else if (!hasNi) {
+        const msg = getErrorMessage('markRecipient', showEnglish, interactionTargetName);
+        return {
             valid: false,
-            message: `Mark the source (${interactionTargetName}) with '\u{306B}' or '\u{304B}\u{3089}'.`
-        };
-    } else {
-        if (!hasNi) return {
-            valid: false,
-            message: `Mark the recipient (${interactionTargetName}) with '\u{306B}'.`
+            message: msg.primary,
+            subtitle: msg.subtitle
         };
     }
+    const msg = getErrorMessage('perfect', showEnglish);
     return {
         valid: true,
-        message: "Perfect!"
+        message: msg.primary,
+        subtitle: msg.subtitle
     };
 };
 // --- Components ---
@@ -1762,7 +1916,7 @@ const RubyText = ({ data, showFurigana, textClass = "text-lg font-bold text-gray
                         children: item.rt
                     }, void 0, false, {
                         fileName: "scr/main.js",
-                        lineNumber: 688,
+                        lineNumber: 839,
                         columnNumber: 15
                     }, undefined),
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -1770,19 +1924,19 @@ const RubyText = ({ data, showFurigana, textClass = "text-lg font-bold text-gray
                         children: item.text
                     }, void 0, false, {
                         fileName: "scr/main.js",
-                        lineNumber: 690,
+                        lineNumber: 841,
                         columnNumber: 13
                     }, undefined)
                 ]
             }, idx, true, {
                 fileName: "scr/main.js",
-                lineNumber: 686,
+                lineNumber: 837,
                 columnNumber: 11
             }, undefined);
         })
     }, void 0, false, {
         fileName: "scr/main.js",
-        lineNumber: 680,
+        lineNumber: 831,
         columnNumber: 5
     }, undefined);
 };
@@ -1790,47 +1944,47 @@ _c2 = RubyText;
 const EntityDisplay = ({ entity, role, isPerspective, showEnglish, showFurigana })=>{
     const EntityIcon = entity.icon || (0, _lucideReact.User);
     return /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-        className: `flex flex-col items-center p-4 rounded-xl border transition-all duration-300 w-32 ${isPerspective ? 'border-indigo-500 bg-[#2d2d2d] shadow-[0_0_15px_rgba(99,102,241,0.3)] transform scale-105' : 'border-[#333] bg-[#222] opacity-80'}`,
+        className: `flex flex-col items-center p-3 rounded-xl border transition-all duration-300 w-36 ${isPerspective ? 'border-indigo-500 bg-[#2d2d2d] shadow-[0_0_15px_rgba(99,102,241,0.3)] transform scale-105' : 'border-[#333] bg-[#222] opacity-80'}`,
         children: [
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                className: `w-14 h-14 rounded-full flex items-center justify-center mb-3 ${entity.type === 'self' ? 'bg-indigo-900/50 text-indigo-400' : 'bg-orange-900/50 text-orange-400'}`,
+                className: `w-10 h-10 rounded-full flex items-center justify-center mb-2 ${entity.type === 'self' ? 'bg-indigo-900/50 text-indigo-400' : 'bg-orange-900/50 text-orange-400'}`,
                 children: /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(EntityIcon, {
-                    size: 24
+                    size: 18
                 }, void 0, false, {
                     fileName: "scr/main.js",
-                    lineNumber: 710,
+                    lineNumber: 861,
                     columnNumber: 9
                 }, undefined)
             }, void 0, false, {
                 fileName: "scr/main.js",
-                lineNumber: 707,
+                lineNumber: 858,
                 columnNumber: 7
             }, undefined),
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(RubyText, {
                 data: entity.furigana,
                 showFurigana: showFurigana,
-                textClass: "text-xl font-bold text-gray-200"
+                textClass: "text-lg font-bold text-gray-200"
             }, void 0, false, {
                 fileName: "scr/main.js",
-                lineNumber: 712,
+                lineNumber: 863,
                 columnNumber: 7
             }, undefined),
             showEnglish && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
-                className: "text-xs text-gray-500 mt-1",
+                className: "text-[10px] text-gray-500 mt-0.5",
                 children: entity.label
             }, void 0, false, {
                 fileName: "scr/main.js",
-                lineNumber: 718,
+                lineNumber: 869,
                 columnNumber: 9
             }, undefined),
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                className: `mt-2 px-2 py-0.5 rounded text-base font-bold tracking-wide flex flex-col items-center ${role === 'giver' ? 'bg-green-900/30 text-green-400' : 'bg-purple-900/30 text-purple-400'}`,
+                className: `mt-1.5 px-2 py-0.5 rounded text-sm font-bold tracking-wide flex flex-col items-center ${role === 'giver' ? 'bg-green-900/30 text-green-400' : 'bg-purple-900/30 text-purple-400'}`,
                 children: [
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
                         children: role === 'giver' ? "\u8D08\u308A\u624B" : "\u53D7\u3051\u624B"
                     }, void 0, false, {
                         fileName: "scr/main.js",
-                        lineNumber: 723,
+                        lineNumber: 874,
                         columnNumber: 9
                     }, undefined),
                     showEnglish && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -1838,13 +1992,13 @@ const EntityDisplay = ({ entity, role, isPerspective, showEnglish, showFurigana 
                         children: role === 'giver' ? 'Giver' : 'Receiver'
                     }, void 0, false, {
                         fileName: "scr/main.js",
-                        lineNumber: 725,
+                        lineNumber: 876,
                         columnNumber: 11
                     }, undefined)
                 ]
             }, void 0, true, {
                 fileName: "scr/main.js",
-                lineNumber: 720,
+                lineNumber: 871,
                 columnNumber: 7
             }, undefined),
             isPerspective && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -1855,48 +2009,48 @@ const EntityDisplay = ({ entity, role, isPerspective, showEnglish, showFurigana 
                         className: "mr-1"
                     }, void 0, false, {
                         fileName: "scr/main.js",
-                        lineNumber: 730,
+                        lineNumber: 881,
                         columnNumber: 11
                     }, undefined),
                     " \u4E3B\u984C"
                 ]
             }, void 0, true, {
                 fileName: "scr/main.js",
-                lineNumber: 729,
+                lineNumber: 880,
                 columnNumber: 9
             }, undefined)
         ]
     }, void 0, true, {
         fileName: "scr/main.js",
-        lineNumber: 702,
+        lineNumber: 853,
         columnNumber: 5
     }, undefined);
 };
 _c3 = EntityDisplay;
 const Checkbox = ({ label, checked, onChange, colorClass = "bg-green-600" })=>/*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("label", {
-        className: "flex items-center gap-3 cursor-pointer group mb-2 select-none",
+        className: "flex items-center gap-3 cursor-pointer group mb-2 select-none hover:cursor-pointer",
         children: [
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                className: `w-5 h-5 rounded border border-gray-600 flex items-center justify-center transition-all ${checked ? 'bg-green-600 border-transparent' : 'bg-[#222] group-hover:border-gray-500'}`,
+                className: `w-5 h-5 rounded border border-gray-600 flex items-center justify-center transition-all cursor-pointer ${checked ? 'bg-green-600 border-transparent' : 'bg-[#222] group-hover:border-gray-500'}`,
                 children: checked && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _lucideReact.CheckCheck), {
                     size: 14,
                     className: "text-white"
                 }, void 0, false, {
                     fileName: "scr/main.js",
-                    lineNumber: 742,
+                    lineNumber: 893,
                     columnNumber: 19
                 }, undefined)
             }, void 0, false, {
                 fileName: "scr/main.js",
-                lineNumber: 739,
+                lineNumber: 890,
                 columnNumber: 5
             }, undefined),
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
-                className: `text-sm ${checked ? 'text-gray-200 font-bold' : 'text-gray-500'}`,
+                className: `text-sm cursor-pointer ${checked ? 'text-gray-200 font-bold' : 'text-gray-500'}`,
                 children: label
             }, void 0, false, {
                 fileName: "scr/main.js",
-                lineNumber: 744,
+                lineNumber: 895,
                 columnNumber: 5
             }, undefined),
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("input", {
@@ -1906,13 +2060,13 @@ const Checkbox = ({ label, checked, onChange, colorClass = "bg-green-600" })=>/*
                 onChange: onChange
             }, void 0, false, {
                 fileName: "scr/main.js",
-                lineNumber: 745,
+                lineNumber: 896,
                 columnNumber: 5
             }, undefined)
         ]
     }, void 0, true, {
         fileName: "scr/main.js",
-        lineNumber: 738,
+        lineNumber: 889,
         columnNumber: 3
     }, undefined);
 _c4 = Checkbox;
@@ -2071,11 +2225,12 @@ function App() {
     ]); // Regenerate when modes or verb filters toggle
     const handleCheck = ()=>{
         if (!scenario) return;
-        const result = validateInput(inputValue, scenario, settings.advancedMode);
+        const result = validateInput(inputValue, scenario, settings.advancedMode, settings.englishLabels);
         if (result.valid) {
             setFeedback({
                 type: 'success',
-                text: result.message
+                text: result.message,
+                subtitle: result.subtitle
             });
             setIsCorrect(true);
             const newStreak = streak + 1;
@@ -2084,7 +2239,8 @@ function App() {
         } else {
             setFeedback({
                 type: 'error',
-                text: result.message
+                text: result.message,
+                subtitle: result.subtitle
             });
             setStreak(0);
         }
@@ -2107,7 +2263,7 @@ function App() {
         children: "Loading..."
     }, void 0, false, {
         fileName: "scr/main.js",
-        lineNumber: 952,
+        lineNumber: 1103,
         columnNumber: 25
     }, this);
     const ItemIcon = scenario.item.icon;
@@ -2120,30 +2276,30 @@ function App() {
                 children: [
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("button", {
                         onClick: ()=>setIsSettingsOpen(!isSettingsOpen),
-                        className: `flex items-center gap-2 text-gray-400 hover:text-white transition-colors border border-gray-700 hover:border-gray-500 bg-[#222] rounded px-3 py-1.5 text-sm ${isSettingsOpen ? 'bg-gray-800 text-white border-gray-500' : ''}`,
+                        className: `flex items-center gap-2 text-gray-400 hover:text-white transition-colors border border-gray-700 hover:border-gray-500 bg-[#333333] hover:bg-[#444] rounded px-3 py-1.5 text-sm cursor-pointer ${isSettingsOpen ? 'bg-[#444] text-white border-gray-500' : ''}`,
                         children: [
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _lucideReact.Settings), {
                                 size: 16
                             }, void 0, false, {
                                 fileName: "scr/main.js",
-                                lineNumber: 965,
+                                lineNumber: 1116,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
                                 children: "\u8A2D\u5B9A"
                             }, void 0, false, {
                                 fileName: "scr/main.js",
-                                lineNumber: 966,
+                                lineNumber: 1117,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "scr/main.js",
-                        lineNumber: 961,
+                        lineNumber: 1112,
                         columnNumber: 9
                     }, this),
                     isSettingsOpen && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                        className: "absolute top-full left-0 mt-2 w-72 max-h-[80vh] overflow-y-auto bg-[#222] border border-[#333] rounded-xl shadow-2xl p-4 animate-in fade-in slide-in-from-top-2",
+                        className: "absolute top-full left-0 mt-2 w-72 max-h-[80vh] overflow-y-auto bg-[#333333] border border-[#444] rounded-xl shadow-2xl p-4 animate-in fade-in slide-in-from-top-2 cursor-pointer",
                         children: [
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                                 className: "mb-6",
@@ -2153,14 +2309,14 @@ function App() {
                                         children: "VERB FILTER"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 975,
+                                        lineNumber: 1126,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("hr", {
                                         className: "border-[#333] mb-2"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 976,
+                                        lineNumber: 1127,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(Checkbox, {
@@ -2175,7 +2331,7 @@ function App() {
                                                 }))
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 977,
+                                        lineNumber: 1128,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(Checkbox, {
@@ -2190,7 +2346,7 @@ function App() {
                                                 }))
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 982,
+                                        lineNumber: 1133,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(Checkbox, {
@@ -2205,13 +2361,13 @@ function App() {
                                                 }))
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 987,
+                                        lineNumber: 1138,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "scr/main.js",
-                                lineNumber: 974,
+                                lineNumber: 1125,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -2222,14 +2378,14 @@ function App() {
                                         children: "DIFFICULTY"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 996,
+                                        lineNumber: 1147,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("hr", {
                                         className: "border-[#333] mb-2"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 997,
+                                        lineNumber: 1148,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(Checkbox, {
@@ -2241,7 +2397,7 @@ function App() {
                                                 }))
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 998,
+                                        lineNumber: 1149,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
@@ -2249,7 +2405,7 @@ function App() {
                                         children: "Me-Centric Mode"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1003,
+                                        lineNumber: 1154,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(Checkbox, {
@@ -2261,7 +2417,7 @@ function App() {
                                                 }))
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1007,
+                                        lineNumber: 1158,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
@@ -2269,13 +2425,13 @@ function App() {
                                         children: "Advanced Te-form Practice"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1012,
+                                        lineNumber: 1163,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "scr/main.js",
-                                lineNumber: 995,
+                                lineNumber: 1146,
                                 columnNumber: 14
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -2286,14 +2442,14 @@ function App() {
                                         children: "DISPLAY OPTIONS"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1019,
+                                        lineNumber: 1170,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("hr", {
                                         className: "border-[#333] mb-2"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1020,
+                                        lineNumber: 1171,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(Checkbox, {
@@ -2305,7 +2461,7 @@ function App() {
                                                 }))
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1021,
+                                        lineNumber: 1172,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
@@ -2313,7 +2469,7 @@ function App() {
                                         children: "English Labels"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1026,
+                                        lineNumber: 1177,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(Checkbox, {
@@ -2325,7 +2481,7 @@ function App() {
                                                 }))
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1027,
+                                        lineNumber: 1178,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
@@ -2333,13 +2489,13 @@ function App() {
                                         children: "Furigana"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1032,
+                                        lineNumber: 1183,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "scr/main.js",
-                                lineNumber: 1018,
+                                lineNumber: 1169,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -2350,14 +2506,14 @@ function App() {
                                         children: "QUIZ HELPER"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1037,
+                                        lineNumber: 1188,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("hr", {
                                         className: "border-[#333] mb-2"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1038,
+                                        lineNumber: 1189,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(Checkbox, {
@@ -2369,7 +2525,7 @@ function App() {
                                                 }))
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1039,
+                                        lineNumber: 1190,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
@@ -2377,107 +2533,107 @@ function App() {
                                         children: "Show Hints"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1044,
+                                        lineNumber: 1195,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "scr/main.js",
-                                lineNumber: 1036,
+                                lineNumber: 1187,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "scr/main.js",
-                        lineNumber: 971,
+                        lineNumber: 1122,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "scr/main.js",
-                lineNumber: 960,
+                lineNumber: 1111,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("main", {
-                className: "h-full flex flex-col items-center justify-center w-full relative max-h-[60vh]",
+                className: "h-full flex flex-col items-center justify-center w-full relative pt-16 md:pt-0",
                 children: [
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                        className: "absolute top-8 right-8 flex flex-col items-end gap-3",
+                        className: "absolute top-6 right-6 flex items-center gap-4",
                         children: [
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                                className: "flex flex-col items-end",
+                                className: "flex flex-col items-center",
                                 children: [
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
-                                        className: "text-xs font-bold text-gray-200 uppercase tracking-wider mb-1 flex items-center gap-1",
+                                        className: "text-[10px] font-bold text-gray-200 uppercase tracking-wider mb-0.5 flex items-center gap-1",
                                         children: [
-                                            "\u73FE\u5728\u306E\u30B9\u30C8\u30EA\u30FC\u30AF ",
                                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _lucideReact.Flame), {
-                                                size: 14,
+                                                size: 10,
                                                 className: streak > 0 ? "text-orange-400" : "text-gray-400"
                                             }, void 0, false, {
                                                 fileName: "scr/main.js",
-                                                lineNumber: 1057,
-                                                columnNumber: 24
-                                            }, this)
+                                                lineNumber: 1208,
+                                                columnNumber: 15
+                                            }, this),
+                                            " \u73FE\u5728"
                                         ]
                                     }, void 0, true, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1056,
+                                        lineNumber: 1207,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
-                                        className: `text-3xl font-mono font-bold ${streak > 0 ? "text-orange-300" : "text-gray-400"}`,
+                                        className: `text-base font-mono font-bold ${streak > 0 ? "text-orange-300" : "text-gray-400"}`,
                                         children: streak
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1059,
+                                        lineNumber: 1210,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "scr/main.js",
-                                lineNumber: 1055,
+                                lineNumber: 1206,
                                 columnNumber: 12
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                                className: "flex flex-col items-end",
+                                className: "flex flex-col items-center",
                                 children: [
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
-                                        className: "text-xs font-bold text-gray-200 uppercase tracking-wider mb-1 flex items-center gap-1",
+                                        className: "text-[10px] font-bold text-gray-200 uppercase tracking-wider mb-0.5 flex items-center gap-1",
                                         children: [
-                                            "\u6700\u9AD8\u30B9\u30C8\u30EA\u30FC\u30AF ",
                                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _lucideReact.Trophy), {
-                                                size: 14,
+                                                size: 10,
                                                 className: maxStreak > 0 ? "text-yellow-400" : "text-gray-400"
                                             }, void 0, false, {
                                                 fileName: "scr/main.js",
-                                                lineNumber: 1064,
-                                                columnNumber: 23
-                                            }, this)
+                                                lineNumber: 1215,
+                                                columnNumber: 15
+                                            }, this),
+                                            " \u6700\u9AD8"
                                         ]
                                     }, void 0, true, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1063,
+                                        lineNumber: 1214,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
-                                        className: `text-3xl font-mono font-bold ${maxStreak > 0 ? "text-yellow-300" : "text-gray-400"}`,
+                                        className: `text-base font-mono font-bold ${maxStreak > 0 ? "text-yellow-300" : "text-gray-400"}`,
                                         children: maxStreak
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1066,
+                                        lineNumber: 1217,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "scr/main.js",
-                                lineNumber: 1062,
+                                lineNumber: 1213,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "scr/main.js",
-                        lineNumber: 1054,
+                        lineNumber: 1205,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -2493,22 +2649,22 @@ function App() {
                                     showFurigana: settings.furigana
                                 }, void 0, false, {
                                     fileName: "scr/main.js",
-                                    lineNumber: 1073,
+                                    lineNumber: 1224,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                                     className: "flex flex-col items-center mx-4",
                                     children: [
                                         /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                                            className: "bg-[#2a2a2a] p-4 rounded-full border border-[#333] mb-3 relative flex items-center justify-center w-20 h-20 cursor-pointer hover:border-gray-500 transition-colors",
+                                            className: "bg-[#2a2a2a] p-3 rounded-full border border-[#333] mb-2 relative flex items-center justify-center w-14 h-14 cursor-pointer hover:border-gray-500 transition-colors",
                                             onClick: ()=>setShowItemName(!showItemName),
                                             children: [
                                                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(ItemIcon, {
-                                                    size: 32,
+                                                    size: 22,
                                                     className: "text-yellow-400"
                                                 }, void 0, false, {
                                                     fileName: "scr/main.js",
-                                                    lineNumber: 1080,
+                                                    lineNumber: 1231,
                                                     columnNumber: 21
                                                 }, this),
                                                 settings.advancedMode && scenario.action && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -2516,7 +2672,7 @@ function App() {
                                                     children: scenario.action.te
                                                 }, void 0, false, {
                                                     fileName: "scr/main.js",
-                                                    lineNumber: 1084,
+                                                    lineNumber: 1235,
                                                     columnNumber: 24
                                                 }, this),
                                                 showItemName && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -2527,36 +2683,37 @@ function App() {
                                                         textClass: "text-base font-medium text-white"
                                                     }, void 0, false, {
                                                         fileName: "scr/main.js",
-                                                        lineNumber: 1092,
+                                                        lineNumber: 1243,
                                                         columnNumber: 25
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "scr/main.js",
-                                                    lineNumber: 1091,
+                                                    lineNumber: 1242,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "scr/main.js",
-                                            lineNumber: 1076,
+                                            lineNumber: 1227,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                                            className: "flex items-center text-[#444] mt-2 relative",
+                                            className: "flex items-center text-[#666] mt-2 relative",
                                             children: [
                                                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                                                    className: "w-20 h-0.5 bg-[#333]"
+                                                    className: "w-20 h-[3px] bg-[#666]"
                                                 }, void 0, false, {
                                                     fileName: "scr/main.js",
-                                                    lineNumber: 1102,
+                                                    lineNumber: 1253,
                                                     columnNumber: 23
                                                 }, this),
                                                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _lucideReact.ArrowRight), {
                                                     size: 20,
-                                                    className: "text-[#555] -ml-1"
+                                                    strokeWidth: 3,
+                                                    className: "text-[#666] -ml-1"
                                                 }, void 0, false, {
                                                     fileName: "scr/main.js",
-                                                    lineNumber: 1103,
+                                                    lineNumber: 1254,
                                                     columnNumber: 23
                                                 }, this),
                                                 settings.advancedMode && scenario.action && settings.englishLabels && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -2564,19 +2721,19 @@ function App() {
                                                     children: scenario.action.meaning
                                                 }, void 0, false, {
                                                     fileName: "scr/main.js",
-                                                    lineNumber: 1107,
+                                                    lineNumber: 1258,
                                                     columnNumber: 27
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "scr/main.js",
-                                            lineNumber: 1101,
+                                            lineNumber: 1252,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "scr/main.js",
-                                    lineNumber: 1075,
+                                    lineNumber: 1226,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(EntityDisplay, {
@@ -2587,18 +2744,18 @@ function App() {
                                     showFurigana: settings.furigana
                                 }, void 0, false, {
                                     fileName: "scr/main.js",
-                                    lineNumber: 1114,
+                                    lineNumber: 1265,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "scr/main.js",
-                            lineNumber: 1072,
+                            lineNumber: 1223,
                             columnNumber: 12
                         }, this)
                     }, void 0, false, {
                         fileName: "scr/main.js",
-                        lineNumber: 1071,
+                        lineNumber: 1222,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -2618,7 +2775,7 @@ function App() {
                                         className: `w-full bg-white text-gray-900 rounded-full py-4 px-8 text-lg font-medium shadow-[0_0_20px_rgba(0,0,0,0.3)] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all disabled:opacity-80 disabled:bg-gray-200 ${invalidInput ? 'animate-giggle ring-2 ring-red-500' : ''}`
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1122,
+                                        lineNumber: 1273,
                                         columnNumber: 13
                                     }, this),
                                     isCorrect && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -2627,44 +2784,79 @@ function App() {
                                             size: 28
                                         }, void 0, false, {
                                             fileName: "scr/main.js",
-                                            lineNumber: 1134,
+                                            lineNumber: 1285,
                                             columnNumber: 21
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1133,
+                                        lineNumber: 1284,
+                                        columnNumber: 17
+                                    }, this),
+                                    (feedback?.type === 'error' || showAnswer) && !isCorrect && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                                        className: "absolute right-4 top-1/2 transform -translate-y-1/2 text-red-500 animate-in zoom-in",
+                                        children: /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _lucideReact.XCircle), {
+                                            size: 28
+                                        }, void 0, false, {
+                                            fileName: "scr/main.js",
+                                            lineNumber: 1290,
+                                            columnNumber: 21
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "scr/main.js",
+                                        lineNumber: 1289,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "scr/main.js",
-                                lineNumber: 1121,
+                                lineNumber: 1272,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                                className: "min-h-[24px]",
+                                className: "min-h-[40px] flex flex-col items-center",
                                 children: [
-                                    feedback && !showAnswer && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
-                                        className: `text-sm font-medium animate-in fade-in slide-in-from-bottom-2 ${feedback.type === 'success' ? 'text-green-400' : 'text-rose-400'}`,
-                                        children: feedback.text
-                                    }, void 0, false, {
+                                    feedback && !showAnswer && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                                        className: "text-center animate-in fade-in slide-in-from-bottom-2",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
+                                                className: `text-sm font-medium ${feedback.type === 'success' ? 'text-green-400' : 'text-rose-400'}`,
+                                                children: feedback.text
+                                            }, void 0, false, {
+                                                fileName: "scr/main.js",
+                                                lineNumber: 1299,
+                                                columnNumber: 19
+                                            }, this),
+                                            feedback.subtitle && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
+                                                className: "text-xs text-gray-400 mt-0.5",
+                                                children: feedback.subtitle
+                                            }, void 0, false, {
+                                                fileName: "scr/main.js",
+                                                lineNumber: 1303,
+                                                columnNumber: 21
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1142,
+                                        lineNumber: 1298,
                                         columnNumber: 17
                                     }, this),
                                     showAnswer && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                                         className: "text-center animate-in fade-in slide-in-from-bottom-2 space-y-2",
                                         children: [
                                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
-                                                className: "text-white text-xs font-bold",
+                                                className: "text-gray-400 text-xs font-bold",
                                                 children: "\u6B63\u3057\u3044\u56DE\u7B54"
                                             }, void 0, false, {
                                                 fileName: "scr/main.js",
-                                                lineNumber: 1148,
+                                                lineNumber: 1309,
                                                 columnNumber: 20
                                             }, this),
                                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
-                                                className: "text-white text-base font-medium inline-flex flex-wrap items-end justify-center gap-0",
+                                                className: "text-white text-lg font-medium inline-flex flex-wrap items-end justify-center",
+                                                style: {
+                                                    gap: 0,
+                                                    letterSpacing: 0
+                                                },
                                                 children: [
                                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
                                                         className: scenario.perspective.id === scenario.giver.id ? 'text-green-400 font-bold' : 'text-purple-400 font-bold',
@@ -2674,12 +2866,12 @@ function App() {
                                                             textClass: scenario.perspective.id === scenario.giver.id ? 'text-base font-bold text-green-400' : 'text-base font-bold text-purple-400'
                                                         }, void 0, false, {
                                                             fileName: "scr/main.js",
-                                                            lineNumber: 1152,
+                                                            lineNumber: 1313,
                                                             columnNumber: 25
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "scr/main.js",
-                                                        lineNumber: 1151,
+                                                        lineNumber: 1312,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -2687,7 +2879,7 @@ function App() {
                                                         children: "\u306F"
                                                     }, void 0, false, {
                                                         fileName: "scr/main.js",
-                                                        lineNumber: 1158,
+                                                        lineNumber: 1319,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -2698,12 +2890,12 @@ function App() {
                                                             textClass: scenario.perspective.id === scenario.giver.id ? 'text-base font-bold text-purple-400' : 'text-base font-bold text-green-400'
                                                         }, void 0, false, {
                                                             fileName: "scr/main.js",
-                                                            lineNumber: 1161,
+                                                            lineNumber: 1322,
                                                             columnNumber: 25
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "scr/main.js",
-                                                        lineNumber: 1160,
+                                                        lineNumber: 1321,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -2711,7 +2903,7 @@ function App() {
                                                         children: "\u306B"
                                                     }, void 0, false, {
                                                         fileName: "scr/main.js",
-                                                        lineNumber: 1167,
+                                                        lineNumber: 1328,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -2722,12 +2914,12 @@ function App() {
                                                             textClass: "text-base font-bold text-yellow-400"
                                                         }, void 0, false, {
                                                             fileName: "scr/main.js",
-                                                            lineNumber: 1170,
+                                                            lineNumber: 1331,
                                                             columnNumber: 25
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "scr/main.js",
-                                                        lineNumber: 1169,
+                                                        lineNumber: 1330,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -2735,7 +2927,7 @@ function App() {
                                                         children: "\u3092"
                                                     }, void 0, false, {
                                                         fileName: "scr/main.js",
-                                                        lineNumber: 1176,
+                                                        lineNumber: 1337,
                                                         columnNumber: 23
                                                     }, this),
                                                     settings.advancedMode && scenario.action && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -2746,12 +2938,12 @@ function App() {
                                                             textClass: "text-base font-bold text-red-700"
                                                         }, void 0, false, {
                                                             fileName: "scr/main.js",
-                                                            lineNumber: 1180,
+                                                            lineNumber: 1341,
                                                             columnNumber: 27
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "scr/main.js",
-                                                        lineNumber: 1179,
+                                                        lineNumber: 1340,
                                                         columnNumber: 25
                                                     }, this),
                                                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
@@ -2759,13 +2951,13 @@ function App() {
                                                         children: scenario.perspective.id === scenario.giver.id ? scenario.receiver.id === 'me' ? "\u304F\u308C\u307E\u3059" : "\u3042\u3052\u307E\u3059" : "\u3082\u3089\u3044\u307E\u3059"
                                                     }, void 0, false, {
                                                         fileName: "scr/main.js",
-                                                        lineNumber: 1188,
+                                                        lineNumber: 1349,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "scr/main.js",
-                                                lineNumber: 1149,
+                                                lineNumber: 1310,
                                                 columnNumber: 20
                                             }, this),
                                             settings.advancedMode && scenario.action && settings.englishLabels && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
@@ -2777,19 +2969,19 @@ function App() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "scr/main.js",
-                                                lineNumber: 1196,
+                                                lineNumber: 1357,
                                                 columnNumber: 23
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1147,
+                                        lineNumber: 1308,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "scr/main.js",
-                                lineNumber: 1140,
+                                lineNumber: 1296,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -2800,11 +2992,11 @@ function App() {
                                             setShowAnswer(true);
                                             setStreak(0);
                                         },
-                                        className: "text-gray-300 hover:text-white text-sm font-medium transition-colors",
+                                        className: "text-gray-300 hover:text-white text-sm font-medium transition-colors cursor-pointer",
                                         children: "\u308F\u304B\u3089\u306A\u3044"
                                     }, void 0, false, {
                                         fileName: "scr/main.js",
-                                        lineNumber: 1205,
+                                        lineNumber: 1366,
                                         columnNumber: 16
                                     }, this),
                                     (isCorrect || showAnswer) && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _jsxDevRuntime.Fragment), {
@@ -2817,11 +3009,11 @@ function App() {
                                                     setShowAnswer(false);
                                                     if (inputRef.current) inputRef.current.focus();
                                                 },
-                                                className: "bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-full text-sm transition-colors",
+                                                className: "bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-full text-sm transition-colors cursor-pointer",
                                                 children: "\u3082\u3046\u4E00\u5EA6"
                                             }, void 0, false, {
                                                 fileName: "scr/main.js",
-                                                lineNumber: 1218,
+                                                lineNumber: 1379,
                                                 columnNumber: 18
                                             }, this),
                                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("button", {
@@ -2829,11 +3021,11 @@ function App() {
                                                     generateScenario();
                                                     setShowAnswer(false);
                                                 },
-                                                className: `${isCorrect ? 'bg-green-700 hover:bg-green-600' : 'bg-red-700 hover:bg-red-600'} text-white font-bold py-2 px-6 rounded-full text-sm transition-colors`,
+                                                className: `${isCorrect ? 'bg-green-700 hover:bg-green-600' : 'bg-red-700 hover:bg-red-600'} text-white font-bold py-2 px-6 rounded-full text-sm transition-colors cursor-pointer`,
                                                 children: "\u6B21\u3078"
                                             }, void 0, false, {
                                                 fileName: "scr/main.js",
-                                                lineNumber: 1230,
+                                                lineNumber: 1391,
                                                 columnNumber: 18
                                             }, this)
                                         ]
@@ -2841,25 +3033,25 @@ function App() {
                                 ]
                             }, void 0, true, {
                                 fileName: "scr/main.js",
-                                lineNumber: 1203,
+                                lineNumber: 1364,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "scr/main.js",
-                        lineNumber: 1119,
+                        lineNumber: 1270,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "scr/main.js",
-                lineNumber: 1051,
+                lineNumber: 1202,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "scr/main.js",
-        lineNumber: 957,
+        lineNumber: 1108,
         columnNumber: 5
     }, this);
 }
@@ -2875,7 +3067,7 @@ const rootElement = document.getElementById('root');
 if (!globalRoot) globalRoot = (0, _clientDefault.default).createRoot(rootElement);
 globalRoot.render(/*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)(App, {}, void 0, false, {
     fileName: "scr/main.js",
-    lineNumber: 1259,
+    lineNumber: 1420,
     columnNumber: 19
 }, undefined));
 var _c, _c1, _c2, _c3, _c4, _c5;
@@ -11750,7 +11942,7 @@ var _zoomOutMjsDefault = parcelHelpers.interopDefault(_zoomOutMjs);
 var _createLucideIconMjs = require("./createLucideIcon.mjs");
 var _createLucideIconMjsDefault = parcelHelpers.interopDefault(_createLucideIconMjs);
 
-},{"./icons/index.mjs":false,"./icons/accessibility.mjs":false,"./icons/activity-square.mjs":false,"./icons/activity.mjs":false,"./icons/air-vent.mjs":false,"./icons/airplay.mjs":false,"./icons/alarm-check.mjs":false,"./icons/alarm-clock-off.mjs":false,"./icons/alarm-clock.mjs":false,"./icons/alarm-minus.mjs":false,"./icons/alarm-plus.mjs":false,"./icons/album.mjs":false,"./icons/alert-circle.mjs":false,"./icons/alert-octagon.mjs":false,"./icons/alert-triangle.mjs":false,"./icons/align-center-horizontal.mjs":false,"./icons/align-center-vertical.mjs":false,"./icons/align-center.mjs":false,"./icons/align-end-horizontal.mjs":false,"./icons/align-end-vertical.mjs":false,"./icons/align-horizontal-distribute-center.mjs":false,"./icons/align-horizontal-distribute-end.mjs":false,"./icons/align-horizontal-distribute-start.mjs":false,"./icons/align-horizontal-justify-center.mjs":false,"./icons/align-horizontal-justify-end.mjs":false,"./icons/align-horizontal-justify-start.mjs":false,"./icons/align-horizontal-space-around.mjs":false,"./icons/align-horizontal-space-between.mjs":false,"./icons/align-justify.mjs":false,"./icons/align-left.mjs":false,"./icons/align-right.mjs":false,"./icons/align-start-horizontal.mjs":false,"./icons/align-start-vertical.mjs":false,"./icons/align-vertical-distribute-center.mjs":false,"./icons/align-vertical-distribute-end.mjs":false,"./icons/align-vertical-distribute-start.mjs":false,"./icons/align-vertical-justify-center.mjs":false,"./icons/align-vertical-justify-end.mjs":false,"./icons/align-vertical-justify-start.mjs":false,"./icons/align-vertical-space-around.mjs":false,"./icons/align-vertical-space-between.mjs":false,"./icons/ampersand.mjs":false,"./icons/ampersands.mjs":false,"./icons/anchor.mjs":false,"./icons/angry.mjs":false,"./icons/annoyed.mjs":false,"./icons/antenna.mjs":false,"./icons/aperture.mjs":false,"./icons/app-window.mjs":false,"./icons/apple.mjs":"jRtd7","./icons/archive-restore.mjs":false,"./icons/archive.mjs":false,"./icons/area-chart.mjs":false,"./icons/armchair.mjs":false,"./icons/arrow-big-down-dash.mjs":false,"./icons/arrow-big-down.mjs":false,"./icons/arrow-big-left-dash.mjs":false,"./icons/arrow-big-left.mjs":false,"./icons/arrow-big-right-dash.mjs":false,"./icons/arrow-big-right.mjs":false,"./icons/arrow-big-up-dash.mjs":false,"./icons/arrow-big-up.mjs":false,"./icons/arrow-down-0-1.mjs":false,"./icons/arrow-down-1-0.mjs":false,"./icons/arrow-down-a-z.mjs":false,"./icons/arrow-down-circle.mjs":false,"./icons/arrow-down-from-line.mjs":false,"./icons/arrow-down-left-from-circle.mjs":false,"./icons/arrow-down-left-square.mjs":false,"./icons/arrow-down-left.mjs":false,"./icons/arrow-down-narrow-wide.mjs":false,"./icons/arrow-down-right-from-circle.mjs":false,"./icons/arrow-down-right-square.mjs":false,"./icons/arrow-down-right.mjs":false,"./icons/arrow-down-square.mjs":false,"./icons/arrow-down-to-dot.mjs":false,"./icons/arrow-down-to-line.mjs":false,"./icons/arrow-down-up.mjs":false,"./icons/arrow-down-wide-narrow.mjs":false,"./icons/arrow-down-z-a.mjs":false,"./icons/arrow-down.mjs":false,"./icons/arrow-left-circle.mjs":false,"./icons/arrow-left-from-line.mjs":false,"./icons/arrow-left-right.mjs":false,"./icons/arrow-left-square.mjs":false,"./icons/arrow-left-to-line.mjs":false,"./icons/arrow-left.mjs":false,"./icons/arrow-right-circle.mjs":false,"./icons/arrow-right-from-line.mjs":false,"./icons/arrow-right-left.mjs":false,"./icons/arrow-right-square.mjs":false,"./icons/arrow-right-to-line.mjs":false,"./icons/arrow-right.mjs":"6Jq0V","./icons/arrow-up-0-1.mjs":false,"./icons/arrow-up-1-0.mjs":false,"./icons/arrow-up-a-z.mjs":false,"./icons/arrow-up-circle.mjs":false,"./icons/arrow-up-down.mjs":false,"./icons/arrow-up-from-dot.mjs":false,"./icons/arrow-up-from-line.mjs":false,"./icons/arrow-up-left-from-circle.mjs":false,"./icons/arrow-up-left-square.mjs":false,"./icons/arrow-up-left.mjs":false,"./icons/arrow-up-narrow-wide.mjs":false,"./icons/arrow-up-right-from-circle.mjs":false,"./icons/arrow-up-right-square.mjs":false,"./icons/arrow-up-right.mjs":false,"./icons/arrow-up-square.mjs":false,"./icons/arrow-up-to-line.mjs":false,"./icons/arrow-up-wide-narrow.mjs":false,"./icons/arrow-up-z-a.mjs":false,"./icons/arrow-up.mjs":false,"./icons/arrows-up-from-line.mjs":false,"./icons/asterisk.mjs":false,"./icons/at-sign.mjs":false,"./icons/atom.mjs":false,"./icons/award.mjs":false,"./icons/axe.mjs":false,"./icons/axis-3d.mjs":false,"./icons/baby.mjs":false,"./icons/backpack.mjs":false,"./icons/badge-alert.mjs":false,"./icons/badge-check.mjs":false,"./icons/badge-dollar-sign.mjs":false,"./icons/badge-help.mjs":false,"./icons/badge-info.mjs":false,"./icons/badge-minus.mjs":false,"./icons/badge-percent.mjs":false,"./icons/badge-plus.mjs":false,"./icons/badge-x.mjs":false,"./icons/badge.mjs":false,"./icons/baggage-claim.mjs":false,"./icons/ban.mjs":false,"./icons/banana.mjs":false,"./icons/banknote.mjs":"hFF7K","./icons/bar-chart-2.mjs":false,"./icons/bar-chart-3.mjs":false,"./icons/bar-chart-4.mjs":false,"./icons/bar-chart-big.mjs":false,"./icons/bar-chart-horizontal-big.mjs":false,"./icons/bar-chart-horizontal.mjs":false,"./icons/bar-chart.mjs":false,"./icons/baseline.mjs":false,"./icons/bath.mjs":false,"./icons/battery-charging.mjs":false,"./icons/battery-full.mjs":false,"./icons/battery-low.mjs":false,"./icons/battery-medium.mjs":false,"./icons/battery-warning.mjs":false,"./icons/battery.mjs":false,"./icons/beaker.mjs":false,"./icons/bean-off.mjs":false,"./icons/bean.mjs":false,"./icons/bed-double.mjs":false,"./icons/bed-single.mjs":false,"./icons/bed.mjs":false,"./icons/beef.mjs":false,"./icons/beer.mjs":false,"./icons/bell-dot.mjs":false,"./icons/bell-minus.mjs":false,"./icons/bell-off.mjs":false,"./icons/bell-plus.mjs":false,"./icons/bell-ring.mjs":false,"./icons/bell.mjs":false,"./icons/bike.mjs":false,"./icons/binary.mjs":false,"./icons/biohazard.mjs":false,"./icons/bird.mjs":false,"./icons/bitcoin.mjs":false,"./icons/blinds.mjs":false,"./icons/bluetooth-connected.mjs":false,"./icons/bluetooth-off.mjs":false,"./icons/bluetooth-searching.mjs":false,"./icons/bluetooth.mjs":false,"./icons/bold.mjs":false,"./icons/bomb.mjs":false,"./icons/bone.mjs":false,"./icons/book-copy.mjs":false,"./icons/book-down.mjs":false,"./icons/book-key.mjs":false,"./icons/book-lock.mjs":false,"./icons/book-marked.mjs":false,"./icons/book-minus.mjs":false,"./icons/book-open-check.mjs":false,"./icons/book-open.mjs":false,"./icons/book-plus.mjs":false,"./icons/book-template.mjs":false,"./icons/book-up-2.mjs":false,"./icons/book-up.mjs":false,"./icons/book-x.mjs":false,"./icons/book.mjs":"i0YFG","./icons/bookmark-minus.mjs":false,"./icons/bookmark-plus.mjs":false,"./icons/bookmark.mjs":false,"./icons/boom-box.mjs":false,"./icons/bot.mjs":false,"./icons/box-select.mjs":false,"./icons/box.mjs":false,"./icons/boxes.mjs":false,"./icons/braces.mjs":false,"./icons/brackets.mjs":false,"./icons/brain-circuit.mjs":false,"./icons/brain-cog.mjs":false,"./icons/brain.mjs":false,"./icons/briefcase.mjs":"iiY5L","./icons/bring-to-front.mjs":false,"./icons/brush.mjs":false,"./icons/bug.mjs":false,"./icons/building-2.mjs":false,"./icons/building.mjs":false,"./icons/bus.mjs":false,"./icons/cable.mjs":false,"./icons/cake-slice.mjs":false,"./icons/cake.mjs":false,"./icons/calculator.mjs":false,"./icons/calendar-check-2.mjs":false,"./icons/calendar-check.mjs":false,"./icons/calendar-clock.mjs":false,"./icons/calendar-days.mjs":false,"./icons/calendar-heart.mjs":false,"./icons/calendar-minus.mjs":false,"./icons/calendar-off.mjs":false,"./icons/calendar-plus.mjs":false,"./icons/calendar-range.mjs":false,"./icons/calendar-search.mjs":false,"./icons/calendar-x-2.mjs":false,"./icons/calendar-x.mjs":false,"./icons/calendar.mjs":false,"./icons/camera-off.mjs":false,"./icons/camera.mjs":false,"./icons/candlestick-chart.mjs":false,"./icons/candy-cane.mjs":false,"./icons/candy-off.mjs":false,"./icons/candy.mjs":false,"./icons/car.mjs":false,"./icons/carrot.mjs":false,"./icons/case-lower.mjs":false,"./icons/case-sensitive.mjs":false,"./icons/case-upper.mjs":false,"./icons/cassette-tape.mjs":false,"./icons/cast.mjs":false,"./icons/castle.mjs":false,"./icons/cat.mjs":false,"./icons/check-check.mjs":"7yfHA","./icons/check-circle-2.mjs":false,"./icons/check-circle.mjs":"esIzf","./icons/check-square.mjs":false,"./icons/check.mjs":false,"./icons/chef-hat.mjs":false,"./icons/cherry.mjs":false,"./icons/chevron-down-circle.mjs":false,"./icons/chevron-down-square.mjs":false,"./icons/chevron-down.mjs":false,"./icons/chevron-first.mjs":false,"./icons/chevron-last.mjs":false,"./icons/chevron-left-circle.mjs":false,"./icons/chevron-left-square.mjs":false,"./icons/chevron-left.mjs":false,"./icons/chevron-right-circle.mjs":false,"./icons/chevron-right-square.mjs":false,"./icons/chevron-right.mjs":false,"./icons/chevron-up-circle.mjs":false,"./icons/chevron-up-square.mjs":false,"./icons/chevron-up.mjs":false,"./icons/chevrons-down-up.mjs":false,"./icons/chevrons-down.mjs":false,"./icons/chevrons-left-right.mjs":false,"./icons/chevrons-left.mjs":false,"./icons/chevrons-right-left.mjs":false,"./icons/chevrons-right.mjs":false,"./icons/chevrons-up-down.mjs":false,"./icons/chevrons-up.mjs":false,"./icons/chrome.mjs":false,"./icons/church.mjs":false,"./icons/cigarette-off.mjs":false,"./icons/cigarette.mjs":false,"./icons/circle-dashed.mjs":false,"./icons/circle-dollar-sign.mjs":false,"./icons/circle-dot-dashed.mjs":false,"./icons/circle-dot.mjs":false,"./icons/circle-ellipsis.mjs":false,"./icons/circle-equal.mjs":false,"./icons/circle-off.mjs":false,"./icons/circle-slash-2.mjs":false,"./icons/circle-slash.mjs":false,"./icons/circle.mjs":false,"./icons/circuit-board.mjs":false,"./icons/citrus.mjs":false,"./icons/clapperboard.mjs":false,"./icons/clipboard-check.mjs":false,"./icons/clipboard-copy.mjs":false,"./icons/clipboard-edit.mjs":false,"./icons/clipboard-list.mjs":false,"./icons/clipboard-paste.mjs":false,"./icons/clipboard-signature.mjs":false,"./icons/clipboard-type.mjs":false,"./icons/clipboard-x.mjs":false,"./icons/clipboard.mjs":false,"./icons/clock-1.mjs":false,"./icons/clock-10.mjs":false,"./icons/clock-11.mjs":false,"./icons/clock-12.mjs":false,"./icons/clock-2.mjs":false,"./icons/clock-3.mjs":false,"./icons/clock-4.mjs":false,"./icons/clock-5.mjs":false,"./icons/clock-6.mjs":false,"./icons/clock-7.mjs":false,"./icons/clock-8.mjs":false,"./icons/clock-9.mjs":false,"./icons/clock.mjs":false,"./icons/cloud-cog.mjs":false,"./icons/cloud-drizzle.mjs":false,"./icons/cloud-fog.mjs":false,"./icons/cloud-hail.mjs":false,"./icons/cloud-lightning.mjs":false,"./icons/cloud-moon-rain.mjs":false,"./icons/cloud-moon.mjs":false,"./icons/cloud-off.mjs":false,"./icons/cloud-rain-wind.mjs":false,"./icons/cloud-rain.mjs":false,"./icons/cloud-snow.mjs":false,"./icons/cloud-sun-rain.mjs":false,"./icons/cloud-sun.mjs":false,"./icons/cloud.mjs":false,"./icons/cloudy.mjs":false,"./icons/clover.mjs":false,"./icons/club.mjs":false,"./icons/code-2.mjs":false,"./icons/code.mjs":false,"./icons/codepen.mjs":false,"./icons/codesandbox.mjs":false,"./icons/coffee.mjs":"i0n2n","./icons/cog.mjs":false,"./icons/coins.mjs":false,"./icons/columns.mjs":false,"./icons/combine.mjs":false,"./icons/command.mjs":false,"./icons/compass.mjs":false,"./icons/component.mjs":false,"./icons/computer.mjs":false,"./icons/concierge-bell.mjs":false,"./icons/construction.mjs":false,"./icons/contact-2.mjs":false,"./icons/contact.mjs":false,"./icons/container.mjs":false,"./icons/contrast.mjs":false,"./icons/cookie.mjs":"9LyqC","./icons/copy-check.mjs":false,"./icons/copy-minus.mjs":false,"./icons/copy-plus.mjs":false,"./icons/copy-slash.mjs":false,"./icons/copy-x.mjs":false,"./icons/copy.mjs":false,"./icons/copyleft.mjs":false,"./icons/copyright.mjs":false,"./icons/corner-down-left.mjs":false,"./icons/corner-down-right.mjs":false,"./icons/corner-left-down.mjs":false,"./icons/corner-left-up.mjs":false,"./icons/corner-right-down.mjs":false,"./icons/corner-right-up.mjs":false,"./icons/corner-up-left.mjs":false,"./icons/corner-up-right.mjs":false,"./icons/cpu.mjs":false,"./icons/creative-commons.mjs":false,"./icons/credit-card.mjs":false,"./icons/croissant.mjs":false,"./icons/crop.mjs":false,"./icons/cross.mjs":false,"./icons/crosshair.mjs":false,"./icons/crown.mjs":false,"./icons/cup-soda.mjs":false,"./icons/currency.mjs":false,"./icons/database-backup.mjs":false,"./icons/database.mjs":false,"./icons/delete.mjs":false,"./icons/dessert.mjs":false,"./icons/diamond.mjs":false,"./icons/dice-1.mjs":false,"./icons/dice-2.mjs":false,"./icons/dice-3.mjs":false,"./icons/dice-4.mjs":false,"./icons/dice-5.mjs":false,"./icons/dice-6.mjs":false,"./icons/dices.mjs":false,"./icons/diff.mjs":false,"./icons/disc-2.mjs":false,"./icons/disc-3.mjs":false,"./icons/disc.mjs":false,"./icons/divide-circle.mjs":false,"./icons/divide-square.mjs":false,"./icons/divide.mjs":false,"./icons/dna-off.mjs":false,"./icons/dna.mjs":false,"./icons/dog.mjs":false,"./icons/dollar-sign.mjs":false,"./icons/donut.mjs":false,"./icons/door-closed.mjs":false,"./icons/door-open.mjs":false,"./icons/dot.mjs":false,"./icons/download-cloud.mjs":false,"./icons/download.mjs":false,"./icons/dribbble.mjs":false,"./icons/droplet.mjs":false,"./icons/droplets.mjs":false,"./icons/drumstick.mjs":false,"./icons/dumbbell.mjs":false,"./icons/ear-off.mjs":false,"./icons/ear.mjs":false,"./icons/egg-fried.mjs":false,"./icons/egg-off.mjs":false,"./icons/egg.mjs":false,"./icons/equal-not.mjs":false,"./icons/equal.mjs":false,"./icons/eraser.mjs":false,"./icons/euro.mjs":false,"./icons/expand.mjs":false,"./icons/external-link.mjs":false,"./icons/eye-off.mjs":false,"./icons/eye.mjs":false,"./icons/facebook.mjs":false,"./icons/factory.mjs":false,"./icons/fan.mjs":false,"./icons/fast-forward.mjs":false,"./icons/feather.mjs":false,"./icons/ferris-wheel.mjs":false,"./icons/figma.mjs":false,"./icons/file-archive.mjs":false,"./icons/file-audio-2.mjs":false,"./icons/file-audio.mjs":false,"./icons/file-axis-3d.mjs":false,"./icons/file-badge-2.mjs":false,"./icons/file-badge.mjs":false,"./icons/file-bar-chart-2.mjs":false,"./icons/file-bar-chart.mjs":false,"./icons/file-box.mjs":false,"./icons/file-check-2.mjs":false,"./icons/file-check.mjs":false,"./icons/file-clock.mjs":false,"./icons/file-code-2.mjs":false,"./icons/file-code.mjs":false,"./icons/file-cog-2.mjs":false,"./icons/file-cog.mjs":false,"./icons/file-diff.mjs":false,"./icons/file-digit.mjs":false,"./icons/file-down.mjs":false,"./icons/file-edit.mjs":false,"./icons/file-heart.mjs":false,"./icons/file-image.mjs":false,"./icons/file-input.mjs":false,"./icons/file-json-2.mjs":false,"./icons/file-json.mjs":false,"./icons/file-key-2.mjs":false,"./icons/file-key.mjs":false,"./icons/file-line-chart.mjs":false,"./icons/file-lock-2.mjs":false,"./icons/file-lock.mjs":false,"./icons/file-minus-2.mjs":false,"./icons/file-minus.mjs":false,"./icons/file-output.mjs":false,"./icons/file-pie-chart.mjs":false,"./icons/file-plus-2.mjs":false,"./icons/file-plus.mjs":false,"./icons/file-question.mjs":false,"./icons/file-scan.mjs":false,"./icons/file-search-2.mjs":false,"./icons/file-search.mjs":false,"./icons/file-signature.mjs":false,"./icons/file-spreadsheet.mjs":false,"./icons/file-stack.mjs":false,"./icons/file-symlink.mjs":false,"./icons/file-terminal.mjs":false,"./icons/file-text.mjs":false,"./icons/file-type-2.mjs":false,"./icons/file-type.mjs":false,"./icons/file-up.mjs":false,"./icons/file-video-2.mjs":false,"./icons/file-video.mjs":false,"./icons/file-volume-2.mjs":false,"./icons/file-volume.mjs":false,"./icons/file-warning.mjs":false,"./icons/file-x-2.mjs":false,"./icons/file-x.mjs":false,"./icons/file.mjs":false,"./icons/files.mjs":false,"./icons/film.mjs":false,"./icons/filter-x.mjs":false,"./icons/filter.mjs":false,"./icons/fingerprint.mjs":false,"./icons/fish-off.mjs":false,"./icons/fish.mjs":false,"./icons/flag-off.mjs":false,"./icons/flag-triangle-left.mjs":false,"./icons/flag-triangle-right.mjs":false,"./icons/flag.mjs":false,"./icons/flame.mjs":"FSV0D","./icons/flashlight-off.mjs":false,"./icons/flashlight.mjs":false,"./icons/flask-conical-off.mjs":false,"./icons/flask-conical.mjs":false,"./icons/flask-round.mjs":false,"./icons/flip-horizontal-2.mjs":false,"./icons/flip-horizontal.mjs":false,"./icons/flip-vertical-2.mjs":false,"./icons/flip-vertical.mjs":false,"./icons/flower-2.mjs":false,"./icons/flower.mjs":"c8pC5","./icons/focus.mjs":false,"./icons/fold-horizontal.mjs":false,"./icons/fold-vertical.mjs":false,"./icons/folder-archive.mjs":false,"./icons/folder-check.mjs":false,"./icons/folder-clock.mjs":false,"./icons/folder-closed.mjs":false,"./icons/folder-cog-2.mjs":false,"./icons/folder-cog.mjs":false,"./icons/folder-dot.mjs":false,"./icons/folder-down.mjs":false,"./icons/folder-edit.mjs":false,"./icons/folder-git-2.mjs":false,"./icons/folder-git.mjs":false,"./icons/folder-heart.mjs":false,"./icons/folder-input.mjs":false,"./icons/folder-kanban.mjs":false,"./icons/folder-key.mjs":false,"./icons/folder-lock.mjs":false,"./icons/folder-minus.mjs":false,"./icons/folder-open-dot.mjs":false,"./icons/folder-open.mjs":false,"./icons/folder-output.mjs":false,"./icons/folder-plus.mjs":false,"./icons/folder-root.mjs":false,"./icons/folder-search-2.mjs":false,"./icons/folder-search.mjs":false,"./icons/folder-symlink.mjs":false,"./icons/folder-sync.mjs":false,"./icons/folder-tree.mjs":false,"./icons/folder-up.mjs":false,"./icons/folder-x.mjs":false,"./icons/folder.mjs":false,"./icons/folders.mjs":false,"./icons/footprints.mjs":false,"./icons/forklift.mjs":false,"./icons/form-input.mjs":false,"./icons/forward.mjs":false,"./icons/frame.mjs":false,"./icons/framer.mjs":false,"./icons/frown.mjs":false,"./icons/fuel.mjs":false,"./icons/function-square.mjs":false,"./icons/gallery-horizontal-end.mjs":false,"./icons/gallery-horizontal.mjs":false,"./icons/gallery-thumbnails.mjs":false,"./icons/gallery-vertical-end.mjs":false,"./icons/gallery-vertical.mjs":false,"./icons/gamepad-2.mjs":false,"./icons/gamepad.mjs":false,"./icons/gantt-chart-square.mjs":false,"./icons/gantt-chart.mjs":false,"./icons/gauge-circle.mjs":false,"./icons/gauge.mjs":false,"./icons/gavel.mjs":false,"./icons/gem.mjs":false,"./icons/ghost.mjs":false,"./icons/gift.mjs":"i4Np8","./icons/git-branch-plus.mjs":false,"./icons/git-branch.mjs":false,"./icons/git-commit.mjs":false,"./icons/git-compare.mjs":false,"./icons/git-fork.mjs":false,"./icons/git-merge.mjs":false,"./icons/git-pull-request-closed.mjs":false,"./icons/git-pull-request-draft.mjs":false,"./icons/git-pull-request.mjs":false,"./icons/github.mjs":false,"./icons/gitlab.mjs":false,"./icons/glass-water.mjs":false,"./icons/glasses.mjs":false,"./icons/globe-2.mjs":false,"./icons/globe.mjs":false,"./icons/goal.mjs":false,"./icons/grab.mjs":false,"./icons/graduation-cap.mjs":"9fkBT","./icons/grape.mjs":false,"./icons/grid.mjs":false,"./icons/grip-horizontal.mjs":false,"./icons/grip-vertical.mjs":false,"./icons/grip.mjs":false,"./icons/group.mjs":false,"./icons/hammer.mjs":false,"./icons/hand-metal.mjs":false,"./icons/hand.mjs":false,"./icons/hard-drive-download.mjs":false,"./icons/hard-drive-upload.mjs":false,"./icons/hard-drive.mjs":false,"./icons/hard-hat.mjs":false,"./icons/hash.mjs":false,"./icons/haze.mjs":false,"./icons/hdmi-port.mjs":false,"./icons/heading-1.mjs":false,"./icons/heading-2.mjs":false,"./icons/heading-3.mjs":false,"./icons/heading-4.mjs":false,"./icons/heading-5.mjs":false,"./icons/heading-6.mjs":false,"./icons/heading.mjs":false,"./icons/headphones.mjs":false,"./icons/heart-crack.mjs":false,"./icons/heart-handshake.mjs":false,"./icons/heart-off.mjs":false,"./icons/heart-pulse.mjs":false,"./icons/heart.mjs":false,"./icons/help-circle.mjs":false,"./icons/helping-hand.mjs":false,"./icons/hexagon.mjs":false,"./icons/highlighter.mjs":false,"./icons/history.mjs":false,"./icons/home.mjs":false,"./icons/hop-off.mjs":false,"./icons/hop.mjs":false,"./icons/hotel.mjs":false,"./icons/hourglass.mjs":false,"./icons/ice-cream-2.mjs":false,"./icons/ice-cream.mjs":false,"./icons/image-minus.mjs":false,"./icons/image-off.mjs":false,"./icons/image-plus.mjs":false,"./icons/image.mjs":false,"./icons/import.mjs":false,"./icons/inbox.mjs":false,"./icons/indent.mjs":false,"./icons/indian-rupee.mjs":false,"./icons/infinity.mjs":false,"./icons/info.mjs":false,"./icons/inspect.mjs":false,"./icons/instagram.mjs":false,"./icons/italic.mjs":false,"./icons/iteration-ccw.mjs":false,"./icons/iteration-cw.mjs":false,"./icons/japanese-yen.mjs":false,"./icons/joystick.mjs":false,"./icons/kanban-square-dashed.mjs":false,"./icons/kanban-square.mjs":false,"./icons/kanban.mjs":false,"./icons/key-round.mjs":false,"./icons/key-square.mjs":false,"./icons/key.mjs":false,"./icons/keyboard.mjs":false,"./icons/lamp-ceiling.mjs":false,"./icons/lamp-desk.mjs":false,"./icons/lamp-floor.mjs":false,"./icons/lamp-wall-down.mjs":false,"./icons/lamp-wall-up.mjs":false,"./icons/lamp.mjs":false,"./icons/landmark.mjs":false,"./icons/languages.mjs":false,"./icons/laptop-2.mjs":false,"./icons/laptop.mjs":false,"./icons/lasso-select.mjs":false,"./icons/lasso.mjs":false,"./icons/laugh.mjs":false,"./icons/layers.mjs":false,"./icons/layout-dashboard.mjs":false,"./icons/layout-grid.mjs":false,"./icons/layout-list.mjs":false,"./icons/layout-panel-left.mjs":false,"./icons/layout-panel-top.mjs":false,"./icons/layout-template.mjs":false,"./icons/layout.mjs":false,"./icons/leaf.mjs":false,"./icons/leafy-green.mjs":false,"./icons/library.mjs":false,"./icons/life-buoy.mjs":false,"./icons/ligature.mjs":false,"./icons/lightbulb-off.mjs":false,"./icons/lightbulb.mjs":false,"./icons/line-chart.mjs":false,"./icons/link-2-off.mjs":false,"./icons/link-2.mjs":false,"./icons/link.mjs":false,"./icons/linkedin.mjs":false,"./icons/list-checks.mjs":false,"./icons/list-end.mjs":false,"./icons/list-filter.mjs":false,"./icons/list-minus.mjs":false,"./icons/list-music.mjs":false,"./icons/list-ordered.mjs":false,"./icons/list-plus.mjs":false,"./icons/list-restart.mjs":false,"./icons/list-start.mjs":false,"./icons/list-todo.mjs":false,"./icons/list-tree.mjs":false,"./icons/list-video.mjs":false,"./icons/list-x.mjs":false,"./icons/list.mjs":false,"./icons/loader-2.mjs":false,"./icons/loader.mjs":false,"./icons/locate-fixed.mjs":false,"./icons/locate-off.mjs":false,"./icons/locate.mjs":false,"./icons/lock.mjs":false,"./icons/log-in.mjs":false,"./icons/log-out.mjs":false,"./icons/lollipop.mjs":false,"./icons/luggage.mjs":false,"./icons/magnet.mjs":false,"./icons/mail-check.mjs":false,"./icons/mail-minus.mjs":false,"./icons/mail-open.mjs":false,"./icons/mail-plus.mjs":false,"./icons/mail-question.mjs":false,"./icons/mail-search.mjs":false,"./icons/mail-warning.mjs":false,"./icons/mail-x.mjs":false,"./icons/mail.mjs":"jAqyK","./icons/mailbox.mjs":false,"./icons/mails.mjs":false,"./icons/map-pin-off.mjs":false,"./icons/map-pin.mjs":false,"./icons/map.mjs":false,"./icons/martini.mjs":false,"./icons/maximize-2.mjs":false,"./icons/maximize.mjs":false,"./icons/medal.mjs":false,"./icons/megaphone-off.mjs":false,"./icons/megaphone.mjs":false,"./icons/meh.mjs":false,"./icons/memory-stick.mjs":false,"./icons/menu-square.mjs":false,"./icons/menu.mjs":false,"./icons/merge.mjs":false,"./icons/message-circle.mjs":false,"./icons/message-square-dashed.mjs":false,"./icons/message-square-plus.mjs":false,"./icons/message-square.mjs":false,"./icons/messages-square.mjs":false,"./icons/mic-2.mjs":false,"./icons/mic-off.mjs":false,"./icons/mic.mjs":false,"./icons/microscope.mjs":false,"./icons/microwave.mjs":false,"./icons/milestone.mjs":false,"./icons/milk-off.mjs":false,"./icons/milk.mjs":false,"./icons/minimize-2.mjs":false,"./icons/minimize.mjs":false,"./icons/minus-circle.mjs":false,"./icons/minus-square.mjs":false,"./icons/minus.mjs":false,"./icons/monitor-check.mjs":false,"./icons/monitor-dot.mjs":false,"./icons/monitor-down.mjs":false,"./icons/monitor-off.mjs":false,"./icons/monitor-pause.mjs":false,"./icons/monitor-play.mjs":false,"./icons/monitor-smartphone.mjs":false,"./icons/monitor-speaker.mjs":false,"./icons/monitor-stop.mjs":false,"./icons/monitor-up.mjs":false,"./icons/monitor-x.mjs":false,"./icons/monitor.mjs":false,"./icons/moon-star.mjs":false,"./icons/moon.mjs":false,"./icons/more-horizontal.mjs":false,"./icons/more-vertical.mjs":false,"./icons/mountain-snow.mjs":false,"./icons/mountain.mjs":false,"./icons/mouse-pointer-2.mjs":false,"./icons/mouse-pointer-click.mjs":false,"./icons/mouse-pointer.mjs":false,"./icons/mouse.mjs":false,"./icons/move-3d.mjs":false,"./icons/move-diagonal-2.mjs":false,"./icons/move-diagonal.mjs":false,"./icons/move-down-left.mjs":false,"./icons/move-down-right.mjs":false,"./icons/move-down.mjs":false,"./icons/move-horizontal.mjs":false,"./icons/move-left.mjs":false,"./icons/move-right.mjs":false,"./icons/move-up-left.mjs":false,"./icons/move-up-right.mjs":false,"./icons/move-up.mjs":false,"./icons/move-vertical.mjs":false,"./icons/move.mjs":false,"./icons/music-2.mjs":false,"./icons/music-3.mjs":false,"./icons/music-4.mjs":false,"./icons/music.mjs":false,"./icons/navigation-2-off.mjs":false,"./icons/navigation-2.mjs":false,"./icons/navigation-off.mjs":false,"./icons/navigation.mjs":false,"./icons/network.mjs":false,"./icons/newspaper.mjs":false,"./icons/nfc.mjs":false,"./icons/nut-off.mjs":false,"./icons/nut.mjs":false,"./icons/octagon.mjs":false,"./icons/option.mjs":false,"./icons/orbit.mjs":false,"./icons/outdent.mjs":false,"./icons/package-2.mjs":false,"./icons/package-check.mjs":false,"./icons/package-minus.mjs":false,"./icons/package-open.mjs":false,"./icons/package-plus.mjs":false,"./icons/package-search.mjs":false,"./icons/package-x.mjs":false,"./icons/package.mjs":false,"./icons/paint-bucket.mjs":false,"./icons/paintbrush-2.mjs":false,"./icons/paintbrush.mjs":false,"./icons/palette.mjs":false,"./icons/palmtree.mjs":false,"./icons/panel-bottom-close.mjs":false,"./icons/panel-bottom-inactive.mjs":false,"./icons/panel-bottom-open.mjs":false,"./icons/panel-bottom.mjs":false,"./icons/panel-left-close.mjs":false,"./icons/panel-left-inactive.mjs":false,"./icons/panel-left-open.mjs":false,"./icons/panel-left.mjs":false,"./icons/panel-right-close.mjs":false,"./icons/panel-right-inactive.mjs":false,"./icons/panel-right-open.mjs":false,"./icons/panel-right.mjs":false,"./icons/panel-top-close.mjs":false,"./icons/panel-top-inactive.mjs":false,"./icons/panel-top-open.mjs":false,"./icons/panel-top.mjs":false,"./icons/paperclip.mjs":false,"./icons/parentheses.mjs":false,"./icons/parking-circle-off.mjs":false,"./icons/parking-circle.mjs":false,"./icons/parking-square-off.mjs":false,"./icons/parking-square.mjs":false,"./icons/party-popper.mjs":false,"./icons/pause-circle.mjs":false,"./icons/pause-octagon.mjs":false,"./icons/pause.mjs":false,"./icons/pc-case.mjs":false,"./icons/pen-line.mjs":false,"./icons/pen-square.mjs":false,"./icons/pen-tool.mjs":false,"./icons/pen.mjs":false,"./icons/pencil-line.mjs":false,"./icons/pencil-ruler.mjs":false,"./icons/pencil.mjs":false,"./icons/percent.mjs":false,"./icons/person-standing.mjs":false,"./icons/phone-call.mjs":false,"./icons/phone-forwarded.mjs":false,"./icons/phone-incoming.mjs":false,"./icons/phone-missed.mjs":false,"./icons/phone-off.mjs":false,"./icons/phone-outgoing.mjs":false,"./icons/phone.mjs":false,"./icons/pi-square.mjs":false,"./icons/pi.mjs":false,"./icons/picture-in-picture-2.mjs":false,"./icons/picture-in-picture.mjs":false,"./icons/pie-chart.mjs":false,"./icons/piggy-bank.mjs":false,"./icons/pilcrow-square.mjs":false,"./icons/pilcrow.mjs":false,"./icons/pill.mjs":false,"./icons/pin-off.mjs":false,"./icons/pin.mjs":false,"./icons/pipette.mjs":false,"./icons/pizza.mjs":false,"./icons/plane-landing.mjs":false,"./icons/plane-takeoff.mjs":false,"./icons/plane.mjs":false,"./icons/play-circle.mjs":false,"./icons/play-square.mjs":false,"./icons/play.mjs":false,"./icons/plug-2.mjs":false,"./icons/plug-zap-2.mjs":false,"./icons/plug-zap.mjs":false,"./icons/plug.mjs":false,"./icons/plus-circle.mjs":false,"./icons/plus-square.mjs":false,"./icons/plus.mjs":false,"./icons/pocket-knife.mjs":false,"./icons/pocket.mjs":false,"./icons/podcast.mjs":false,"./icons/pointer.mjs":false,"./icons/popcorn.mjs":false,"./icons/popsicle.mjs":false,"./icons/pound-sterling.mjs":false,"./icons/power-off.mjs":false,"./icons/power.mjs":false,"./icons/presentation.mjs":false,"./icons/printer.mjs":false,"./icons/projector.mjs":false,"./icons/puzzle.mjs":false,"./icons/qr-code.mjs":false,"./icons/quote.mjs":false,"./icons/radar.mjs":false,"./icons/radiation.mjs":false,"./icons/radio-receiver.mjs":false,"./icons/radio-tower.mjs":false,"./icons/radio.mjs":false,"./icons/rainbow.mjs":false,"./icons/rat.mjs":false,"./icons/ratio.mjs":false,"./icons/receipt.mjs":false,"./icons/rectangle-horizontal.mjs":false,"./icons/rectangle-vertical.mjs":false,"./icons/recycle.mjs":false,"./icons/redo-2.mjs":false,"./icons/redo-dot.mjs":false,"./icons/redo.mjs":false,"./icons/refresh-ccw-dot.mjs":false,"./icons/refresh-ccw.mjs":false,"./icons/refresh-cw-off.mjs":false,"./icons/refresh-cw.mjs":false,"./icons/refrigerator.mjs":false,"./icons/regex.mjs":false,"./icons/remove-formatting.mjs":false,"./icons/repeat-1.mjs":false,"./icons/repeat-2.mjs":false,"./icons/repeat.mjs":false,"./icons/replace-all.mjs":false,"./icons/replace.mjs":false,"./icons/reply-all.mjs":false,"./icons/reply.mjs":false,"./icons/rewind.mjs":false,"./icons/rocket.mjs":false,"./icons/rocking-chair.mjs":false,"./icons/roller-coaster.mjs":false,"./icons/rotate-3d.mjs":false,"./icons/rotate-ccw.mjs":false,"./icons/rotate-cw.mjs":false,"./icons/router.mjs":false,"./icons/rows.mjs":false,"./icons/rss.mjs":false,"./icons/ruler.mjs":false,"./icons/russian-ruble.mjs":false,"./icons/sailboat.mjs":false,"./icons/salad.mjs":false,"./icons/sandwich.mjs":false,"./icons/satellite-dish.mjs":false,"./icons/satellite.mjs":false,"./icons/save-all.mjs":false,"./icons/save.mjs":false,"./icons/scale-3d.mjs":false,"./icons/scale.mjs":false,"./icons/scaling.mjs":false,"./icons/scan-face.mjs":false,"./icons/scan-line.mjs":false,"./icons/scan.mjs":false,"./icons/scatter-chart.mjs":false,"./icons/school-2.mjs":false,"./icons/school.mjs":false,"./icons/scissors-line-dashed.mjs":false,"./icons/scissors-square-dashed-bottom.mjs":false,"./icons/scissors-square.mjs":false,"./icons/scissors.mjs":false,"./icons/screen-share-off.mjs":false,"./icons/screen-share.mjs":false,"./icons/scroll-text.mjs":false,"./icons/scroll.mjs":false,"./icons/search-check.mjs":false,"./icons/search-code.mjs":false,"./icons/search-slash.mjs":false,"./icons/search-x.mjs":false,"./icons/search.mjs":false,"./icons/send-horizonal.mjs":false,"./icons/send-to-back.mjs":false,"./icons/send.mjs":false,"./icons/separator-horizontal.mjs":false,"./icons/separator-vertical.mjs":false,"./icons/server-cog.mjs":false,"./icons/server-crash.mjs":false,"./icons/server-off.mjs":false,"./icons/server.mjs":false,"./icons/settings-2.mjs":false,"./icons/settings.mjs":"egJLX","./icons/shapes.mjs":false,"./icons/share-2.mjs":false,"./icons/share.mjs":false,"./icons/sheet.mjs":false,"./icons/shield-alert.mjs":false,"./icons/shield-check.mjs":false,"./icons/shield-close.mjs":false,"./icons/shield-off.mjs":false,"./icons/shield-question.mjs":false,"./icons/shield.mjs":false,"./icons/ship.mjs":false,"./icons/shirt.mjs":false,"./icons/shopping-bag.mjs":false,"./icons/shopping-basket.mjs":false,"./icons/shopping-cart.mjs":false,"./icons/shovel.mjs":false,"./icons/shower-head.mjs":false,"./icons/shrink.mjs":false,"./icons/shrub.mjs":false,"./icons/shuffle.mjs":false,"./icons/sigma-square.mjs":false,"./icons/sigma.mjs":false,"./icons/signal-high.mjs":false,"./icons/signal-low.mjs":false,"./icons/signal-medium.mjs":false,"./icons/signal-zero.mjs":false,"./icons/signal.mjs":false,"./icons/siren.mjs":false,"./icons/skip-back.mjs":false,"./icons/skip-forward.mjs":false,"./icons/skull.mjs":false,"./icons/slack.mjs":false,"./icons/slice.mjs":false,"./icons/sliders-horizontal.mjs":false,"./icons/sliders.mjs":false,"./icons/smartphone-charging.mjs":false,"./icons/smartphone-nfc.mjs":false,"./icons/smartphone.mjs":false,"./icons/smile-plus.mjs":false,"./icons/smile.mjs":"4fUNN","./icons/snowflake.mjs":false,"./icons/sofa.mjs":false,"./icons/soup.mjs":false,"./icons/space.mjs":false,"./icons/spade.mjs":false,"./icons/sparkle.mjs":false,"./icons/sparkles.mjs":false,"./icons/speaker.mjs":false,"./icons/spell-check-2.mjs":false,"./icons/spell-check.mjs":false,"./icons/spline.mjs":false,"./icons/split-square-horizontal.mjs":false,"./icons/split-square-vertical.mjs":false,"./icons/split.mjs":false,"./icons/spray-can.mjs":false,"./icons/sprout.mjs":false,"./icons/square-asterisk.mjs":false,"./icons/square-code.mjs":false,"./icons/square-dashed-bottom-code.mjs":false,"./icons/square-dashed-bottom.mjs":false,"./icons/square-dot.mjs":false,"./icons/square-equal.mjs":false,"./icons/square-slash.mjs":false,"./icons/square-stack.mjs":false,"./icons/square.mjs":false,"./icons/squirrel.mjs":false,"./icons/stamp.mjs":false,"./icons/star-half.mjs":false,"./icons/star-off.mjs":false,"./icons/star.mjs":false,"./icons/step-back.mjs":false,"./icons/step-forward.mjs":false,"./icons/stethoscope.mjs":false,"./icons/sticker.mjs":false,"./icons/sticky-note.mjs":false,"./icons/stop-circle.mjs":false,"./icons/store.mjs":false,"./icons/stretch-horizontal.mjs":false,"./icons/stretch-vertical.mjs":false,"./icons/strikethrough.mjs":false,"./icons/subscript.mjs":false,"./icons/subtitles.mjs":false,"./icons/sun-dim.mjs":false,"./icons/sun-medium.mjs":false,"./icons/sun-moon.mjs":false,"./icons/sun-snow.mjs":false,"./icons/sun.mjs":false,"./icons/sunrise.mjs":false,"./icons/sunset.mjs":false,"./icons/superscript.mjs":false,"./icons/swiss-franc.mjs":false,"./icons/switch-camera.mjs":false,"./icons/sword.mjs":false,"./icons/swords.mjs":false,"./icons/syringe.mjs":false,"./icons/table-2.mjs":false,"./icons/table-properties.mjs":false,"./icons/table.mjs":false,"./icons/tablet.mjs":false,"./icons/tablets.mjs":false,"./icons/tag.mjs":false,"./icons/tags.mjs":false,"./icons/tally-1.mjs":false,"./icons/tally-2.mjs":false,"./icons/tally-3.mjs":false,"./icons/tally-4.mjs":false,"./icons/tally-5.mjs":false,"./icons/target.mjs":false,"./icons/tent.mjs":false,"./icons/terminal-square.mjs":false,"./icons/terminal.mjs":false,"./icons/test-tube-2.mjs":false,"./icons/test-tube.mjs":false,"./icons/test-tubes.mjs":false,"./icons/text-cursor-input.mjs":false,"./icons/text-cursor.mjs":false,"./icons/text-quote.mjs":false,"./icons/text-select.mjs":false,"./icons/text.mjs":false,"./icons/thermometer-snowflake.mjs":false,"./icons/thermometer-sun.mjs":false,"./icons/thermometer.mjs":false,"./icons/thumbs-down.mjs":false,"./icons/thumbs-up.mjs":false,"./icons/ticket.mjs":false,"./icons/timer-off.mjs":false,"./icons/timer-reset.mjs":false,"./icons/timer.mjs":false,"./icons/toggle-left.mjs":false,"./icons/toggle-right.mjs":false,"./icons/tornado.mjs":false,"./icons/touchpad-off.mjs":false,"./icons/touchpad.mjs":false,"./icons/tower-control.mjs":false,"./icons/toy-brick.mjs":false,"./icons/train.mjs":false,"./icons/trash-2.mjs":false,"./icons/trash.mjs":false,"./icons/tree-deciduous.mjs":false,"./icons/tree-pine.mjs":false,"./icons/trees.mjs":false,"./icons/trello.mjs":false,"./icons/trending-down.mjs":false,"./icons/trending-up.mjs":false,"./icons/triangle-right.mjs":false,"./icons/triangle.mjs":false,"./icons/trophy.mjs":"hVI5O","./icons/truck.mjs":false,"./icons/tv-2.mjs":false,"./icons/tv.mjs":false,"./icons/twitch.mjs":false,"./icons/twitter.mjs":false,"./icons/type.mjs":false,"./icons/umbrella.mjs":false,"./icons/underline.mjs":false,"./icons/undo-2.mjs":false,"./icons/undo-dot.mjs":false,"./icons/undo.mjs":false,"./icons/unfold-horizontal.mjs":false,"./icons/unfold-vertical.mjs":false,"./icons/ungroup.mjs":false,"./icons/unlink-2.mjs":false,"./icons/unlink.mjs":false,"./icons/unlock.mjs":false,"./icons/unplug.mjs":false,"./icons/upload-cloud.mjs":false,"./icons/upload.mjs":false,"./icons/usb.mjs":false,"./icons/user-2.mjs":false,"./icons/user-check-2.mjs":false,"./icons/user-check.mjs":"kQSDW","./icons/user-circle-2.mjs":false,"./icons/user-circle.mjs":false,"./icons/user-cog-2.mjs":false,"./icons/user-cog.mjs":false,"./icons/user-minus-2.mjs":false,"./icons/user-minus.mjs":false,"./icons/user-plus-2.mjs":false,"./icons/user-plus.mjs":false,"./icons/user-square-2.mjs":false,"./icons/user-square.mjs":false,"./icons/user-x-2.mjs":false,"./icons/user-x.mjs":false,"./icons/user.mjs":"1I6Ps","./icons/users-2.mjs":false,"./icons/users.mjs":false,"./icons/utensils-crossed.mjs":false,"./icons/utensils.mjs":false,"./icons/utility-pole.mjs":false,"./icons/variable.mjs":false,"./icons/vegan.mjs":false,"./icons/venetian-mask.mjs":false,"./icons/vibrate-off.mjs":false,"./icons/vibrate.mjs":false,"./icons/video-off.mjs":false,"./icons/video.mjs":false,"./icons/videotape.mjs":false,"./icons/view.mjs":false,"./icons/voicemail.mjs":false,"./icons/volume-1.mjs":false,"./icons/volume-2.mjs":false,"./icons/volume-x.mjs":false,"./icons/volume.mjs":false,"./icons/vote.mjs":false,"./icons/wallet-2.mjs":false,"./icons/wallet-cards.mjs":false,"./icons/wallet.mjs":false,"./icons/wallpaper.mjs":false,"./icons/wand-2.mjs":false,"./icons/wand.mjs":false,"./icons/warehouse.mjs":false,"./icons/watch.mjs":false,"./icons/waves.mjs":false,"./icons/webcam.mjs":false,"./icons/webhook.mjs":false,"./icons/wheat-off.mjs":false,"./icons/wheat.mjs":false,"./icons/whole-word.mjs":false,"./icons/wifi-off.mjs":false,"./icons/wifi.mjs":false,"./icons/wind.mjs":false,"./icons/wine-off.mjs":false,"./icons/wine.mjs":false,"./icons/workflow.mjs":false,"./icons/wrap-text.mjs":false,"./icons/wrench.mjs":false,"./icons/x-circle.mjs":false,"./icons/x-octagon.mjs":false,"./icons/x-square.mjs":false,"./icons/x.mjs":false,"./icons/youtube.mjs":false,"./icons/zap-off.mjs":false,"./icons/zap.mjs":false,"./icons/zoom-in.mjs":false,"./icons/zoom-out.mjs":false,"./createLucideIcon.mjs":false,"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"jRtd7":[function(require,module,exports,__globalThis) {
+},{"./icons/index.mjs":false,"./icons/accessibility.mjs":false,"./icons/activity-square.mjs":false,"./icons/activity.mjs":false,"./icons/air-vent.mjs":false,"./icons/airplay.mjs":false,"./icons/alarm-check.mjs":false,"./icons/alarm-clock-off.mjs":false,"./icons/alarm-clock.mjs":false,"./icons/alarm-minus.mjs":false,"./icons/alarm-plus.mjs":false,"./icons/album.mjs":false,"./icons/alert-circle.mjs":false,"./icons/alert-octagon.mjs":false,"./icons/alert-triangle.mjs":false,"./icons/align-center-horizontal.mjs":false,"./icons/align-center-vertical.mjs":false,"./icons/align-center.mjs":false,"./icons/align-end-horizontal.mjs":false,"./icons/align-end-vertical.mjs":false,"./icons/align-horizontal-distribute-center.mjs":false,"./icons/align-horizontal-distribute-end.mjs":false,"./icons/align-horizontal-distribute-start.mjs":false,"./icons/align-horizontal-justify-center.mjs":false,"./icons/align-horizontal-justify-end.mjs":false,"./icons/align-horizontal-justify-start.mjs":false,"./icons/align-horizontal-space-around.mjs":false,"./icons/align-horizontal-space-between.mjs":false,"./icons/align-justify.mjs":false,"./icons/align-left.mjs":false,"./icons/align-right.mjs":false,"./icons/align-start-horizontal.mjs":false,"./icons/align-start-vertical.mjs":false,"./icons/align-vertical-distribute-center.mjs":false,"./icons/align-vertical-distribute-end.mjs":false,"./icons/align-vertical-distribute-start.mjs":false,"./icons/align-vertical-justify-center.mjs":false,"./icons/align-vertical-justify-end.mjs":false,"./icons/align-vertical-justify-start.mjs":false,"./icons/align-vertical-space-around.mjs":false,"./icons/align-vertical-space-between.mjs":false,"./icons/ampersand.mjs":false,"./icons/ampersands.mjs":false,"./icons/anchor.mjs":false,"./icons/angry.mjs":false,"./icons/annoyed.mjs":false,"./icons/antenna.mjs":false,"./icons/aperture.mjs":false,"./icons/app-window.mjs":false,"./icons/apple.mjs":"jRtd7","./icons/archive-restore.mjs":false,"./icons/archive.mjs":false,"./icons/area-chart.mjs":false,"./icons/armchair.mjs":false,"./icons/arrow-big-down-dash.mjs":false,"./icons/arrow-big-down.mjs":false,"./icons/arrow-big-left-dash.mjs":false,"./icons/arrow-big-left.mjs":false,"./icons/arrow-big-right-dash.mjs":false,"./icons/arrow-big-right.mjs":false,"./icons/arrow-big-up-dash.mjs":false,"./icons/arrow-big-up.mjs":false,"./icons/arrow-down-0-1.mjs":false,"./icons/arrow-down-1-0.mjs":false,"./icons/arrow-down-a-z.mjs":false,"./icons/arrow-down-circle.mjs":false,"./icons/arrow-down-from-line.mjs":false,"./icons/arrow-down-left-from-circle.mjs":false,"./icons/arrow-down-left-square.mjs":false,"./icons/arrow-down-left.mjs":false,"./icons/arrow-down-narrow-wide.mjs":false,"./icons/arrow-down-right-from-circle.mjs":false,"./icons/arrow-down-right-square.mjs":false,"./icons/arrow-down-right.mjs":false,"./icons/arrow-down-square.mjs":false,"./icons/arrow-down-to-dot.mjs":false,"./icons/arrow-down-to-line.mjs":false,"./icons/arrow-down-up.mjs":false,"./icons/arrow-down-wide-narrow.mjs":false,"./icons/arrow-down-z-a.mjs":false,"./icons/arrow-down.mjs":false,"./icons/arrow-left-circle.mjs":false,"./icons/arrow-left-from-line.mjs":false,"./icons/arrow-left-right.mjs":false,"./icons/arrow-left-square.mjs":false,"./icons/arrow-left-to-line.mjs":false,"./icons/arrow-left.mjs":false,"./icons/arrow-right-circle.mjs":false,"./icons/arrow-right-from-line.mjs":false,"./icons/arrow-right-left.mjs":false,"./icons/arrow-right-square.mjs":false,"./icons/arrow-right-to-line.mjs":false,"./icons/arrow-right.mjs":"6Jq0V","./icons/arrow-up-0-1.mjs":false,"./icons/arrow-up-1-0.mjs":false,"./icons/arrow-up-a-z.mjs":false,"./icons/arrow-up-circle.mjs":false,"./icons/arrow-up-down.mjs":false,"./icons/arrow-up-from-dot.mjs":false,"./icons/arrow-up-from-line.mjs":false,"./icons/arrow-up-left-from-circle.mjs":false,"./icons/arrow-up-left-square.mjs":false,"./icons/arrow-up-left.mjs":false,"./icons/arrow-up-narrow-wide.mjs":false,"./icons/arrow-up-right-from-circle.mjs":false,"./icons/arrow-up-right-square.mjs":false,"./icons/arrow-up-right.mjs":false,"./icons/arrow-up-square.mjs":false,"./icons/arrow-up-to-line.mjs":false,"./icons/arrow-up-wide-narrow.mjs":false,"./icons/arrow-up-z-a.mjs":false,"./icons/arrow-up.mjs":false,"./icons/arrows-up-from-line.mjs":false,"./icons/asterisk.mjs":false,"./icons/at-sign.mjs":false,"./icons/atom.mjs":false,"./icons/award.mjs":false,"./icons/axe.mjs":false,"./icons/axis-3d.mjs":false,"./icons/baby.mjs":false,"./icons/backpack.mjs":false,"./icons/badge-alert.mjs":false,"./icons/badge-check.mjs":false,"./icons/badge-dollar-sign.mjs":false,"./icons/badge-help.mjs":false,"./icons/badge-info.mjs":false,"./icons/badge-minus.mjs":false,"./icons/badge-percent.mjs":false,"./icons/badge-plus.mjs":false,"./icons/badge-x.mjs":false,"./icons/badge.mjs":false,"./icons/baggage-claim.mjs":false,"./icons/ban.mjs":false,"./icons/banana.mjs":false,"./icons/banknote.mjs":"hFF7K","./icons/bar-chart-2.mjs":false,"./icons/bar-chart-3.mjs":false,"./icons/bar-chart-4.mjs":false,"./icons/bar-chart-big.mjs":false,"./icons/bar-chart-horizontal-big.mjs":false,"./icons/bar-chart-horizontal.mjs":false,"./icons/bar-chart.mjs":false,"./icons/baseline.mjs":false,"./icons/bath.mjs":false,"./icons/battery-charging.mjs":false,"./icons/battery-full.mjs":false,"./icons/battery-low.mjs":false,"./icons/battery-medium.mjs":false,"./icons/battery-warning.mjs":false,"./icons/battery.mjs":false,"./icons/beaker.mjs":false,"./icons/bean-off.mjs":false,"./icons/bean.mjs":false,"./icons/bed-double.mjs":false,"./icons/bed-single.mjs":false,"./icons/bed.mjs":false,"./icons/beef.mjs":false,"./icons/beer.mjs":false,"./icons/bell-dot.mjs":false,"./icons/bell-minus.mjs":false,"./icons/bell-off.mjs":false,"./icons/bell-plus.mjs":false,"./icons/bell-ring.mjs":false,"./icons/bell.mjs":false,"./icons/bike.mjs":false,"./icons/binary.mjs":false,"./icons/biohazard.mjs":false,"./icons/bird.mjs":false,"./icons/bitcoin.mjs":false,"./icons/blinds.mjs":false,"./icons/bluetooth-connected.mjs":false,"./icons/bluetooth-off.mjs":false,"./icons/bluetooth-searching.mjs":false,"./icons/bluetooth.mjs":false,"./icons/bold.mjs":false,"./icons/bomb.mjs":false,"./icons/bone.mjs":false,"./icons/book-copy.mjs":false,"./icons/book-down.mjs":false,"./icons/book-key.mjs":false,"./icons/book-lock.mjs":false,"./icons/book-marked.mjs":false,"./icons/book-minus.mjs":false,"./icons/book-open-check.mjs":false,"./icons/book-open.mjs":false,"./icons/book-plus.mjs":false,"./icons/book-template.mjs":false,"./icons/book-up-2.mjs":false,"./icons/book-up.mjs":false,"./icons/book-x.mjs":false,"./icons/book.mjs":"i0YFG","./icons/bookmark-minus.mjs":false,"./icons/bookmark-plus.mjs":false,"./icons/bookmark.mjs":false,"./icons/boom-box.mjs":false,"./icons/bot.mjs":false,"./icons/box-select.mjs":false,"./icons/box.mjs":false,"./icons/boxes.mjs":false,"./icons/braces.mjs":false,"./icons/brackets.mjs":false,"./icons/brain-circuit.mjs":false,"./icons/brain-cog.mjs":false,"./icons/brain.mjs":false,"./icons/briefcase.mjs":"iiY5L","./icons/bring-to-front.mjs":false,"./icons/brush.mjs":false,"./icons/bug.mjs":false,"./icons/building-2.mjs":false,"./icons/building.mjs":false,"./icons/bus.mjs":false,"./icons/cable.mjs":false,"./icons/cake-slice.mjs":false,"./icons/cake.mjs":false,"./icons/calculator.mjs":false,"./icons/calendar-check-2.mjs":false,"./icons/calendar-check.mjs":false,"./icons/calendar-clock.mjs":false,"./icons/calendar-days.mjs":false,"./icons/calendar-heart.mjs":false,"./icons/calendar-minus.mjs":false,"./icons/calendar-off.mjs":false,"./icons/calendar-plus.mjs":false,"./icons/calendar-range.mjs":false,"./icons/calendar-search.mjs":false,"./icons/calendar-x-2.mjs":false,"./icons/calendar-x.mjs":false,"./icons/calendar.mjs":false,"./icons/camera-off.mjs":false,"./icons/camera.mjs":false,"./icons/candlestick-chart.mjs":false,"./icons/candy-cane.mjs":false,"./icons/candy-off.mjs":false,"./icons/candy.mjs":false,"./icons/car.mjs":false,"./icons/carrot.mjs":false,"./icons/case-lower.mjs":false,"./icons/case-sensitive.mjs":false,"./icons/case-upper.mjs":false,"./icons/cassette-tape.mjs":false,"./icons/cast.mjs":false,"./icons/castle.mjs":false,"./icons/cat.mjs":false,"./icons/check-check.mjs":"7yfHA","./icons/check-circle-2.mjs":false,"./icons/check-circle.mjs":"esIzf","./icons/check-square.mjs":false,"./icons/check.mjs":false,"./icons/chef-hat.mjs":false,"./icons/cherry.mjs":false,"./icons/chevron-down-circle.mjs":false,"./icons/chevron-down-square.mjs":false,"./icons/chevron-down.mjs":false,"./icons/chevron-first.mjs":false,"./icons/chevron-last.mjs":false,"./icons/chevron-left-circle.mjs":false,"./icons/chevron-left-square.mjs":false,"./icons/chevron-left.mjs":false,"./icons/chevron-right-circle.mjs":false,"./icons/chevron-right-square.mjs":false,"./icons/chevron-right.mjs":false,"./icons/chevron-up-circle.mjs":false,"./icons/chevron-up-square.mjs":false,"./icons/chevron-up.mjs":false,"./icons/chevrons-down-up.mjs":false,"./icons/chevrons-down.mjs":false,"./icons/chevrons-left-right.mjs":false,"./icons/chevrons-left.mjs":false,"./icons/chevrons-right-left.mjs":false,"./icons/chevrons-right.mjs":false,"./icons/chevrons-up-down.mjs":false,"./icons/chevrons-up.mjs":false,"./icons/chrome.mjs":false,"./icons/church.mjs":false,"./icons/cigarette-off.mjs":false,"./icons/cigarette.mjs":false,"./icons/circle-dashed.mjs":false,"./icons/circle-dollar-sign.mjs":false,"./icons/circle-dot-dashed.mjs":false,"./icons/circle-dot.mjs":false,"./icons/circle-ellipsis.mjs":false,"./icons/circle-equal.mjs":false,"./icons/circle-off.mjs":false,"./icons/circle-slash-2.mjs":false,"./icons/circle-slash.mjs":false,"./icons/circle.mjs":false,"./icons/circuit-board.mjs":false,"./icons/citrus.mjs":false,"./icons/clapperboard.mjs":false,"./icons/clipboard-check.mjs":false,"./icons/clipboard-copy.mjs":false,"./icons/clipboard-edit.mjs":false,"./icons/clipboard-list.mjs":false,"./icons/clipboard-paste.mjs":false,"./icons/clipboard-signature.mjs":false,"./icons/clipboard-type.mjs":false,"./icons/clipboard-x.mjs":false,"./icons/clipboard.mjs":false,"./icons/clock-1.mjs":false,"./icons/clock-10.mjs":false,"./icons/clock-11.mjs":false,"./icons/clock-12.mjs":false,"./icons/clock-2.mjs":false,"./icons/clock-3.mjs":false,"./icons/clock-4.mjs":false,"./icons/clock-5.mjs":false,"./icons/clock-6.mjs":false,"./icons/clock-7.mjs":false,"./icons/clock-8.mjs":false,"./icons/clock-9.mjs":false,"./icons/clock.mjs":false,"./icons/cloud-cog.mjs":false,"./icons/cloud-drizzle.mjs":false,"./icons/cloud-fog.mjs":false,"./icons/cloud-hail.mjs":false,"./icons/cloud-lightning.mjs":false,"./icons/cloud-moon-rain.mjs":false,"./icons/cloud-moon.mjs":false,"./icons/cloud-off.mjs":false,"./icons/cloud-rain-wind.mjs":false,"./icons/cloud-rain.mjs":false,"./icons/cloud-snow.mjs":false,"./icons/cloud-sun-rain.mjs":false,"./icons/cloud-sun.mjs":false,"./icons/cloud.mjs":false,"./icons/cloudy.mjs":false,"./icons/clover.mjs":false,"./icons/club.mjs":false,"./icons/code-2.mjs":false,"./icons/code.mjs":false,"./icons/codepen.mjs":false,"./icons/codesandbox.mjs":false,"./icons/coffee.mjs":"i0n2n","./icons/cog.mjs":false,"./icons/coins.mjs":false,"./icons/columns.mjs":false,"./icons/combine.mjs":false,"./icons/command.mjs":false,"./icons/compass.mjs":false,"./icons/component.mjs":false,"./icons/computer.mjs":false,"./icons/concierge-bell.mjs":false,"./icons/construction.mjs":false,"./icons/contact-2.mjs":false,"./icons/contact.mjs":false,"./icons/container.mjs":false,"./icons/contrast.mjs":false,"./icons/cookie.mjs":"9LyqC","./icons/copy-check.mjs":false,"./icons/copy-minus.mjs":false,"./icons/copy-plus.mjs":false,"./icons/copy-slash.mjs":false,"./icons/copy-x.mjs":false,"./icons/copy.mjs":false,"./icons/copyleft.mjs":false,"./icons/copyright.mjs":false,"./icons/corner-down-left.mjs":false,"./icons/corner-down-right.mjs":false,"./icons/corner-left-down.mjs":false,"./icons/corner-left-up.mjs":false,"./icons/corner-right-down.mjs":false,"./icons/corner-right-up.mjs":false,"./icons/corner-up-left.mjs":false,"./icons/corner-up-right.mjs":false,"./icons/cpu.mjs":false,"./icons/creative-commons.mjs":false,"./icons/credit-card.mjs":false,"./icons/croissant.mjs":false,"./icons/crop.mjs":false,"./icons/cross.mjs":false,"./icons/crosshair.mjs":false,"./icons/crown.mjs":false,"./icons/cup-soda.mjs":false,"./icons/currency.mjs":false,"./icons/database-backup.mjs":false,"./icons/database.mjs":false,"./icons/delete.mjs":false,"./icons/dessert.mjs":false,"./icons/diamond.mjs":false,"./icons/dice-1.mjs":false,"./icons/dice-2.mjs":false,"./icons/dice-3.mjs":false,"./icons/dice-4.mjs":false,"./icons/dice-5.mjs":false,"./icons/dice-6.mjs":false,"./icons/dices.mjs":false,"./icons/diff.mjs":false,"./icons/disc-2.mjs":false,"./icons/disc-3.mjs":false,"./icons/disc.mjs":false,"./icons/divide-circle.mjs":false,"./icons/divide-square.mjs":false,"./icons/divide.mjs":false,"./icons/dna-off.mjs":false,"./icons/dna.mjs":false,"./icons/dog.mjs":false,"./icons/dollar-sign.mjs":false,"./icons/donut.mjs":false,"./icons/door-closed.mjs":false,"./icons/door-open.mjs":false,"./icons/dot.mjs":false,"./icons/download-cloud.mjs":false,"./icons/download.mjs":false,"./icons/dribbble.mjs":false,"./icons/droplet.mjs":false,"./icons/droplets.mjs":false,"./icons/drumstick.mjs":false,"./icons/dumbbell.mjs":false,"./icons/ear-off.mjs":false,"./icons/ear.mjs":false,"./icons/egg-fried.mjs":false,"./icons/egg-off.mjs":false,"./icons/egg.mjs":false,"./icons/equal-not.mjs":false,"./icons/equal.mjs":false,"./icons/eraser.mjs":false,"./icons/euro.mjs":false,"./icons/expand.mjs":false,"./icons/external-link.mjs":false,"./icons/eye-off.mjs":false,"./icons/eye.mjs":false,"./icons/facebook.mjs":false,"./icons/factory.mjs":false,"./icons/fan.mjs":false,"./icons/fast-forward.mjs":false,"./icons/feather.mjs":false,"./icons/ferris-wheel.mjs":false,"./icons/figma.mjs":false,"./icons/file-archive.mjs":false,"./icons/file-audio-2.mjs":false,"./icons/file-audio.mjs":false,"./icons/file-axis-3d.mjs":false,"./icons/file-badge-2.mjs":false,"./icons/file-badge.mjs":false,"./icons/file-bar-chart-2.mjs":false,"./icons/file-bar-chart.mjs":false,"./icons/file-box.mjs":false,"./icons/file-check-2.mjs":false,"./icons/file-check.mjs":false,"./icons/file-clock.mjs":false,"./icons/file-code-2.mjs":false,"./icons/file-code.mjs":false,"./icons/file-cog-2.mjs":false,"./icons/file-cog.mjs":false,"./icons/file-diff.mjs":false,"./icons/file-digit.mjs":false,"./icons/file-down.mjs":false,"./icons/file-edit.mjs":false,"./icons/file-heart.mjs":false,"./icons/file-image.mjs":false,"./icons/file-input.mjs":false,"./icons/file-json-2.mjs":false,"./icons/file-json.mjs":false,"./icons/file-key-2.mjs":false,"./icons/file-key.mjs":false,"./icons/file-line-chart.mjs":false,"./icons/file-lock-2.mjs":false,"./icons/file-lock.mjs":false,"./icons/file-minus-2.mjs":false,"./icons/file-minus.mjs":false,"./icons/file-output.mjs":false,"./icons/file-pie-chart.mjs":false,"./icons/file-plus-2.mjs":false,"./icons/file-plus.mjs":false,"./icons/file-question.mjs":false,"./icons/file-scan.mjs":false,"./icons/file-search-2.mjs":false,"./icons/file-search.mjs":false,"./icons/file-signature.mjs":false,"./icons/file-spreadsheet.mjs":false,"./icons/file-stack.mjs":false,"./icons/file-symlink.mjs":false,"./icons/file-terminal.mjs":false,"./icons/file-text.mjs":false,"./icons/file-type-2.mjs":false,"./icons/file-type.mjs":false,"./icons/file-up.mjs":false,"./icons/file-video-2.mjs":false,"./icons/file-video.mjs":false,"./icons/file-volume-2.mjs":false,"./icons/file-volume.mjs":false,"./icons/file-warning.mjs":false,"./icons/file-x-2.mjs":false,"./icons/file-x.mjs":false,"./icons/file.mjs":false,"./icons/files.mjs":false,"./icons/film.mjs":false,"./icons/filter-x.mjs":false,"./icons/filter.mjs":false,"./icons/fingerprint.mjs":false,"./icons/fish-off.mjs":false,"./icons/fish.mjs":false,"./icons/flag-off.mjs":false,"./icons/flag-triangle-left.mjs":false,"./icons/flag-triangle-right.mjs":false,"./icons/flag.mjs":false,"./icons/flame.mjs":"FSV0D","./icons/flashlight-off.mjs":false,"./icons/flashlight.mjs":false,"./icons/flask-conical-off.mjs":false,"./icons/flask-conical.mjs":false,"./icons/flask-round.mjs":false,"./icons/flip-horizontal-2.mjs":false,"./icons/flip-horizontal.mjs":false,"./icons/flip-vertical-2.mjs":false,"./icons/flip-vertical.mjs":false,"./icons/flower-2.mjs":false,"./icons/flower.mjs":"c8pC5","./icons/focus.mjs":false,"./icons/fold-horizontal.mjs":false,"./icons/fold-vertical.mjs":false,"./icons/folder-archive.mjs":false,"./icons/folder-check.mjs":false,"./icons/folder-clock.mjs":false,"./icons/folder-closed.mjs":false,"./icons/folder-cog-2.mjs":false,"./icons/folder-cog.mjs":false,"./icons/folder-dot.mjs":false,"./icons/folder-down.mjs":false,"./icons/folder-edit.mjs":false,"./icons/folder-git-2.mjs":false,"./icons/folder-git.mjs":false,"./icons/folder-heart.mjs":false,"./icons/folder-input.mjs":false,"./icons/folder-kanban.mjs":false,"./icons/folder-key.mjs":false,"./icons/folder-lock.mjs":false,"./icons/folder-minus.mjs":false,"./icons/folder-open-dot.mjs":false,"./icons/folder-open.mjs":false,"./icons/folder-output.mjs":false,"./icons/folder-plus.mjs":false,"./icons/folder-root.mjs":false,"./icons/folder-search-2.mjs":false,"./icons/folder-search.mjs":false,"./icons/folder-symlink.mjs":false,"./icons/folder-sync.mjs":false,"./icons/folder-tree.mjs":false,"./icons/folder-up.mjs":false,"./icons/folder-x.mjs":false,"./icons/folder.mjs":false,"./icons/folders.mjs":false,"./icons/footprints.mjs":false,"./icons/forklift.mjs":false,"./icons/form-input.mjs":false,"./icons/forward.mjs":false,"./icons/frame.mjs":false,"./icons/framer.mjs":false,"./icons/frown.mjs":false,"./icons/fuel.mjs":false,"./icons/function-square.mjs":false,"./icons/gallery-horizontal-end.mjs":false,"./icons/gallery-horizontal.mjs":false,"./icons/gallery-thumbnails.mjs":false,"./icons/gallery-vertical-end.mjs":false,"./icons/gallery-vertical.mjs":false,"./icons/gamepad-2.mjs":false,"./icons/gamepad.mjs":false,"./icons/gantt-chart-square.mjs":false,"./icons/gantt-chart.mjs":false,"./icons/gauge-circle.mjs":false,"./icons/gauge.mjs":false,"./icons/gavel.mjs":false,"./icons/gem.mjs":false,"./icons/ghost.mjs":false,"./icons/gift.mjs":"i4Np8","./icons/git-branch-plus.mjs":false,"./icons/git-branch.mjs":false,"./icons/git-commit.mjs":false,"./icons/git-compare.mjs":false,"./icons/git-fork.mjs":false,"./icons/git-merge.mjs":false,"./icons/git-pull-request-closed.mjs":false,"./icons/git-pull-request-draft.mjs":false,"./icons/git-pull-request.mjs":false,"./icons/github.mjs":false,"./icons/gitlab.mjs":false,"./icons/glass-water.mjs":false,"./icons/glasses.mjs":false,"./icons/globe-2.mjs":false,"./icons/globe.mjs":false,"./icons/goal.mjs":false,"./icons/grab.mjs":false,"./icons/graduation-cap.mjs":"9fkBT","./icons/grape.mjs":false,"./icons/grid.mjs":false,"./icons/grip-horizontal.mjs":false,"./icons/grip-vertical.mjs":false,"./icons/grip.mjs":false,"./icons/group.mjs":false,"./icons/hammer.mjs":false,"./icons/hand-metal.mjs":false,"./icons/hand.mjs":false,"./icons/hard-drive-download.mjs":false,"./icons/hard-drive-upload.mjs":false,"./icons/hard-drive.mjs":false,"./icons/hard-hat.mjs":false,"./icons/hash.mjs":false,"./icons/haze.mjs":false,"./icons/hdmi-port.mjs":false,"./icons/heading-1.mjs":false,"./icons/heading-2.mjs":false,"./icons/heading-3.mjs":false,"./icons/heading-4.mjs":false,"./icons/heading-5.mjs":false,"./icons/heading-6.mjs":false,"./icons/heading.mjs":false,"./icons/headphones.mjs":false,"./icons/heart-crack.mjs":false,"./icons/heart-handshake.mjs":false,"./icons/heart-off.mjs":false,"./icons/heart-pulse.mjs":false,"./icons/heart.mjs":false,"./icons/help-circle.mjs":false,"./icons/helping-hand.mjs":false,"./icons/hexagon.mjs":false,"./icons/highlighter.mjs":false,"./icons/history.mjs":false,"./icons/home.mjs":false,"./icons/hop-off.mjs":false,"./icons/hop.mjs":false,"./icons/hotel.mjs":false,"./icons/hourglass.mjs":false,"./icons/ice-cream-2.mjs":false,"./icons/ice-cream.mjs":false,"./icons/image-minus.mjs":false,"./icons/image-off.mjs":false,"./icons/image-plus.mjs":false,"./icons/image.mjs":false,"./icons/import.mjs":false,"./icons/inbox.mjs":false,"./icons/indent.mjs":false,"./icons/indian-rupee.mjs":false,"./icons/infinity.mjs":false,"./icons/info.mjs":false,"./icons/inspect.mjs":false,"./icons/instagram.mjs":false,"./icons/italic.mjs":false,"./icons/iteration-ccw.mjs":false,"./icons/iteration-cw.mjs":false,"./icons/japanese-yen.mjs":false,"./icons/joystick.mjs":false,"./icons/kanban-square-dashed.mjs":false,"./icons/kanban-square.mjs":false,"./icons/kanban.mjs":false,"./icons/key-round.mjs":false,"./icons/key-square.mjs":false,"./icons/key.mjs":false,"./icons/keyboard.mjs":false,"./icons/lamp-ceiling.mjs":false,"./icons/lamp-desk.mjs":false,"./icons/lamp-floor.mjs":false,"./icons/lamp-wall-down.mjs":false,"./icons/lamp-wall-up.mjs":false,"./icons/lamp.mjs":false,"./icons/landmark.mjs":false,"./icons/languages.mjs":false,"./icons/laptop-2.mjs":false,"./icons/laptop.mjs":false,"./icons/lasso-select.mjs":false,"./icons/lasso.mjs":false,"./icons/laugh.mjs":false,"./icons/layers.mjs":false,"./icons/layout-dashboard.mjs":false,"./icons/layout-grid.mjs":false,"./icons/layout-list.mjs":false,"./icons/layout-panel-left.mjs":false,"./icons/layout-panel-top.mjs":false,"./icons/layout-template.mjs":false,"./icons/layout.mjs":false,"./icons/leaf.mjs":false,"./icons/leafy-green.mjs":false,"./icons/library.mjs":false,"./icons/life-buoy.mjs":false,"./icons/ligature.mjs":false,"./icons/lightbulb-off.mjs":false,"./icons/lightbulb.mjs":false,"./icons/line-chart.mjs":false,"./icons/link-2-off.mjs":false,"./icons/link-2.mjs":false,"./icons/link.mjs":false,"./icons/linkedin.mjs":false,"./icons/list-checks.mjs":false,"./icons/list-end.mjs":false,"./icons/list-filter.mjs":false,"./icons/list-minus.mjs":false,"./icons/list-music.mjs":false,"./icons/list-ordered.mjs":false,"./icons/list-plus.mjs":false,"./icons/list-restart.mjs":false,"./icons/list-start.mjs":false,"./icons/list-todo.mjs":false,"./icons/list-tree.mjs":false,"./icons/list-video.mjs":false,"./icons/list-x.mjs":false,"./icons/list.mjs":false,"./icons/loader-2.mjs":false,"./icons/loader.mjs":false,"./icons/locate-fixed.mjs":false,"./icons/locate-off.mjs":false,"./icons/locate.mjs":false,"./icons/lock.mjs":false,"./icons/log-in.mjs":false,"./icons/log-out.mjs":false,"./icons/lollipop.mjs":false,"./icons/luggage.mjs":false,"./icons/magnet.mjs":false,"./icons/mail-check.mjs":false,"./icons/mail-minus.mjs":false,"./icons/mail-open.mjs":false,"./icons/mail-plus.mjs":false,"./icons/mail-question.mjs":false,"./icons/mail-search.mjs":false,"./icons/mail-warning.mjs":false,"./icons/mail-x.mjs":false,"./icons/mail.mjs":"jAqyK","./icons/mailbox.mjs":false,"./icons/mails.mjs":false,"./icons/map-pin-off.mjs":false,"./icons/map-pin.mjs":false,"./icons/map.mjs":false,"./icons/martini.mjs":false,"./icons/maximize-2.mjs":false,"./icons/maximize.mjs":false,"./icons/medal.mjs":false,"./icons/megaphone-off.mjs":false,"./icons/megaphone.mjs":false,"./icons/meh.mjs":false,"./icons/memory-stick.mjs":false,"./icons/menu-square.mjs":false,"./icons/menu.mjs":false,"./icons/merge.mjs":false,"./icons/message-circle.mjs":false,"./icons/message-square-dashed.mjs":false,"./icons/message-square-plus.mjs":false,"./icons/message-square.mjs":false,"./icons/messages-square.mjs":false,"./icons/mic-2.mjs":false,"./icons/mic-off.mjs":false,"./icons/mic.mjs":false,"./icons/microscope.mjs":false,"./icons/microwave.mjs":false,"./icons/milestone.mjs":false,"./icons/milk-off.mjs":false,"./icons/milk.mjs":false,"./icons/minimize-2.mjs":false,"./icons/minimize.mjs":false,"./icons/minus-circle.mjs":false,"./icons/minus-square.mjs":false,"./icons/minus.mjs":false,"./icons/monitor-check.mjs":false,"./icons/monitor-dot.mjs":false,"./icons/monitor-down.mjs":false,"./icons/monitor-off.mjs":false,"./icons/monitor-pause.mjs":false,"./icons/monitor-play.mjs":false,"./icons/monitor-smartphone.mjs":false,"./icons/monitor-speaker.mjs":false,"./icons/monitor-stop.mjs":false,"./icons/monitor-up.mjs":false,"./icons/monitor-x.mjs":false,"./icons/monitor.mjs":false,"./icons/moon-star.mjs":false,"./icons/moon.mjs":false,"./icons/more-horizontal.mjs":false,"./icons/more-vertical.mjs":false,"./icons/mountain-snow.mjs":false,"./icons/mountain.mjs":false,"./icons/mouse-pointer-2.mjs":false,"./icons/mouse-pointer-click.mjs":false,"./icons/mouse-pointer.mjs":false,"./icons/mouse.mjs":false,"./icons/move-3d.mjs":false,"./icons/move-diagonal-2.mjs":false,"./icons/move-diagonal.mjs":false,"./icons/move-down-left.mjs":false,"./icons/move-down-right.mjs":false,"./icons/move-down.mjs":false,"./icons/move-horizontal.mjs":false,"./icons/move-left.mjs":false,"./icons/move-right.mjs":false,"./icons/move-up-left.mjs":false,"./icons/move-up-right.mjs":false,"./icons/move-up.mjs":false,"./icons/move-vertical.mjs":false,"./icons/move.mjs":false,"./icons/music-2.mjs":false,"./icons/music-3.mjs":false,"./icons/music-4.mjs":false,"./icons/music.mjs":false,"./icons/navigation-2-off.mjs":false,"./icons/navigation-2.mjs":false,"./icons/navigation-off.mjs":false,"./icons/navigation.mjs":false,"./icons/network.mjs":false,"./icons/newspaper.mjs":false,"./icons/nfc.mjs":false,"./icons/nut-off.mjs":false,"./icons/nut.mjs":false,"./icons/octagon.mjs":false,"./icons/option.mjs":false,"./icons/orbit.mjs":false,"./icons/outdent.mjs":false,"./icons/package-2.mjs":false,"./icons/package-check.mjs":false,"./icons/package-minus.mjs":false,"./icons/package-open.mjs":false,"./icons/package-plus.mjs":false,"./icons/package-search.mjs":false,"./icons/package-x.mjs":false,"./icons/package.mjs":false,"./icons/paint-bucket.mjs":false,"./icons/paintbrush-2.mjs":false,"./icons/paintbrush.mjs":false,"./icons/palette.mjs":false,"./icons/palmtree.mjs":false,"./icons/panel-bottom-close.mjs":false,"./icons/panel-bottom-inactive.mjs":false,"./icons/panel-bottom-open.mjs":false,"./icons/panel-bottom.mjs":false,"./icons/panel-left-close.mjs":false,"./icons/panel-left-inactive.mjs":false,"./icons/panel-left-open.mjs":false,"./icons/panel-left.mjs":false,"./icons/panel-right-close.mjs":false,"./icons/panel-right-inactive.mjs":false,"./icons/panel-right-open.mjs":false,"./icons/panel-right.mjs":false,"./icons/panel-top-close.mjs":false,"./icons/panel-top-inactive.mjs":false,"./icons/panel-top-open.mjs":false,"./icons/panel-top.mjs":false,"./icons/paperclip.mjs":false,"./icons/parentheses.mjs":false,"./icons/parking-circle-off.mjs":false,"./icons/parking-circle.mjs":false,"./icons/parking-square-off.mjs":false,"./icons/parking-square.mjs":false,"./icons/party-popper.mjs":false,"./icons/pause-circle.mjs":false,"./icons/pause-octagon.mjs":false,"./icons/pause.mjs":false,"./icons/pc-case.mjs":false,"./icons/pen-line.mjs":false,"./icons/pen-square.mjs":false,"./icons/pen-tool.mjs":false,"./icons/pen.mjs":false,"./icons/pencil-line.mjs":false,"./icons/pencil-ruler.mjs":false,"./icons/pencil.mjs":false,"./icons/percent.mjs":false,"./icons/person-standing.mjs":false,"./icons/phone-call.mjs":false,"./icons/phone-forwarded.mjs":false,"./icons/phone-incoming.mjs":false,"./icons/phone-missed.mjs":false,"./icons/phone-off.mjs":false,"./icons/phone-outgoing.mjs":false,"./icons/phone.mjs":false,"./icons/pi-square.mjs":false,"./icons/pi.mjs":false,"./icons/picture-in-picture-2.mjs":false,"./icons/picture-in-picture.mjs":false,"./icons/pie-chart.mjs":false,"./icons/piggy-bank.mjs":false,"./icons/pilcrow-square.mjs":false,"./icons/pilcrow.mjs":false,"./icons/pill.mjs":false,"./icons/pin-off.mjs":false,"./icons/pin.mjs":false,"./icons/pipette.mjs":false,"./icons/pizza.mjs":false,"./icons/plane-landing.mjs":false,"./icons/plane-takeoff.mjs":false,"./icons/plane.mjs":false,"./icons/play-circle.mjs":false,"./icons/play-square.mjs":false,"./icons/play.mjs":false,"./icons/plug-2.mjs":false,"./icons/plug-zap-2.mjs":false,"./icons/plug-zap.mjs":false,"./icons/plug.mjs":false,"./icons/plus-circle.mjs":false,"./icons/plus-square.mjs":false,"./icons/plus.mjs":false,"./icons/pocket-knife.mjs":false,"./icons/pocket.mjs":false,"./icons/podcast.mjs":false,"./icons/pointer.mjs":false,"./icons/popcorn.mjs":false,"./icons/popsicle.mjs":false,"./icons/pound-sterling.mjs":false,"./icons/power-off.mjs":false,"./icons/power.mjs":false,"./icons/presentation.mjs":false,"./icons/printer.mjs":false,"./icons/projector.mjs":false,"./icons/puzzle.mjs":false,"./icons/qr-code.mjs":false,"./icons/quote.mjs":false,"./icons/radar.mjs":false,"./icons/radiation.mjs":false,"./icons/radio-receiver.mjs":false,"./icons/radio-tower.mjs":false,"./icons/radio.mjs":false,"./icons/rainbow.mjs":false,"./icons/rat.mjs":false,"./icons/ratio.mjs":false,"./icons/receipt.mjs":false,"./icons/rectangle-horizontal.mjs":false,"./icons/rectangle-vertical.mjs":false,"./icons/recycle.mjs":false,"./icons/redo-2.mjs":false,"./icons/redo-dot.mjs":false,"./icons/redo.mjs":false,"./icons/refresh-ccw-dot.mjs":false,"./icons/refresh-ccw.mjs":false,"./icons/refresh-cw-off.mjs":false,"./icons/refresh-cw.mjs":false,"./icons/refrigerator.mjs":false,"./icons/regex.mjs":false,"./icons/remove-formatting.mjs":false,"./icons/repeat-1.mjs":false,"./icons/repeat-2.mjs":false,"./icons/repeat.mjs":false,"./icons/replace-all.mjs":false,"./icons/replace.mjs":false,"./icons/reply-all.mjs":false,"./icons/reply.mjs":false,"./icons/rewind.mjs":false,"./icons/rocket.mjs":false,"./icons/rocking-chair.mjs":false,"./icons/roller-coaster.mjs":false,"./icons/rotate-3d.mjs":false,"./icons/rotate-ccw.mjs":false,"./icons/rotate-cw.mjs":false,"./icons/router.mjs":false,"./icons/rows.mjs":false,"./icons/rss.mjs":false,"./icons/ruler.mjs":false,"./icons/russian-ruble.mjs":false,"./icons/sailboat.mjs":false,"./icons/salad.mjs":false,"./icons/sandwich.mjs":false,"./icons/satellite-dish.mjs":false,"./icons/satellite.mjs":false,"./icons/save-all.mjs":false,"./icons/save.mjs":false,"./icons/scale-3d.mjs":false,"./icons/scale.mjs":false,"./icons/scaling.mjs":false,"./icons/scan-face.mjs":false,"./icons/scan-line.mjs":false,"./icons/scan.mjs":false,"./icons/scatter-chart.mjs":false,"./icons/school-2.mjs":false,"./icons/school.mjs":false,"./icons/scissors-line-dashed.mjs":false,"./icons/scissors-square-dashed-bottom.mjs":false,"./icons/scissors-square.mjs":false,"./icons/scissors.mjs":false,"./icons/screen-share-off.mjs":false,"./icons/screen-share.mjs":false,"./icons/scroll-text.mjs":false,"./icons/scroll.mjs":false,"./icons/search-check.mjs":false,"./icons/search-code.mjs":false,"./icons/search-slash.mjs":false,"./icons/search-x.mjs":false,"./icons/search.mjs":false,"./icons/send-horizonal.mjs":false,"./icons/send-to-back.mjs":false,"./icons/send.mjs":false,"./icons/separator-horizontal.mjs":false,"./icons/separator-vertical.mjs":false,"./icons/server-cog.mjs":false,"./icons/server-crash.mjs":false,"./icons/server-off.mjs":false,"./icons/server.mjs":false,"./icons/settings-2.mjs":false,"./icons/settings.mjs":"egJLX","./icons/shapes.mjs":false,"./icons/share-2.mjs":false,"./icons/share.mjs":false,"./icons/sheet.mjs":false,"./icons/shield-alert.mjs":false,"./icons/shield-check.mjs":false,"./icons/shield-close.mjs":false,"./icons/shield-off.mjs":false,"./icons/shield-question.mjs":false,"./icons/shield.mjs":false,"./icons/ship.mjs":false,"./icons/shirt.mjs":false,"./icons/shopping-bag.mjs":false,"./icons/shopping-basket.mjs":false,"./icons/shopping-cart.mjs":false,"./icons/shovel.mjs":false,"./icons/shower-head.mjs":false,"./icons/shrink.mjs":false,"./icons/shrub.mjs":false,"./icons/shuffle.mjs":false,"./icons/sigma-square.mjs":false,"./icons/sigma.mjs":false,"./icons/signal-high.mjs":false,"./icons/signal-low.mjs":false,"./icons/signal-medium.mjs":false,"./icons/signal-zero.mjs":false,"./icons/signal.mjs":false,"./icons/siren.mjs":false,"./icons/skip-back.mjs":false,"./icons/skip-forward.mjs":false,"./icons/skull.mjs":false,"./icons/slack.mjs":false,"./icons/slice.mjs":false,"./icons/sliders-horizontal.mjs":false,"./icons/sliders.mjs":false,"./icons/smartphone-charging.mjs":false,"./icons/smartphone-nfc.mjs":false,"./icons/smartphone.mjs":false,"./icons/smile-plus.mjs":false,"./icons/smile.mjs":"4fUNN","./icons/snowflake.mjs":false,"./icons/sofa.mjs":false,"./icons/soup.mjs":false,"./icons/space.mjs":false,"./icons/spade.mjs":false,"./icons/sparkle.mjs":false,"./icons/sparkles.mjs":false,"./icons/speaker.mjs":false,"./icons/spell-check-2.mjs":false,"./icons/spell-check.mjs":false,"./icons/spline.mjs":false,"./icons/split-square-horizontal.mjs":false,"./icons/split-square-vertical.mjs":false,"./icons/split.mjs":false,"./icons/spray-can.mjs":false,"./icons/sprout.mjs":false,"./icons/square-asterisk.mjs":false,"./icons/square-code.mjs":false,"./icons/square-dashed-bottom-code.mjs":false,"./icons/square-dashed-bottom.mjs":false,"./icons/square-dot.mjs":false,"./icons/square-equal.mjs":false,"./icons/square-slash.mjs":false,"./icons/square-stack.mjs":false,"./icons/square.mjs":false,"./icons/squirrel.mjs":false,"./icons/stamp.mjs":false,"./icons/star-half.mjs":false,"./icons/star-off.mjs":false,"./icons/star.mjs":false,"./icons/step-back.mjs":false,"./icons/step-forward.mjs":false,"./icons/stethoscope.mjs":false,"./icons/sticker.mjs":false,"./icons/sticky-note.mjs":false,"./icons/stop-circle.mjs":false,"./icons/store.mjs":false,"./icons/stretch-horizontal.mjs":false,"./icons/stretch-vertical.mjs":false,"./icons/strikethrough.mjs":false,"./icons/subscript.mjs":false,"./icons/subtitles.mjs":false,"./icons/sun-dim.mjs":false,"./icons/sun-medium.mjs":false,"./icons/sun-moon.mjs":false,"./icons/sun-snow.mjs":false,"./icons/sun.mjs":false,"./icons/sunrise.mjs":false,"./icons/sunset.mjs":false,"./icons/superscript.mjs":false,"./icons/swiss-franc.mjs":false,"./icons/switch-camera.mjs":false,"./icons/sword.mjs":false,"./icons/swords.mjs":false,"./icons/syringe.mjs":false,"./icons/table-2.mjs":false,"./icons/table-properties.mjs":false,"./icons/table.mjs":false,"./icons/tablet.mjs":false,"./icons/tablets.mjs":false,"./icons/tag.mjs":false,"./icons/tags.mjs":false,"./icons/tally-1.mjs":false,"./icons/tally-2.mjs":false,"./icons/tally-3.mjs":false,"./icons/tally-4.mjs":false,"./icons/tally-5.mjs":false,"./icons/target.mjs":false,"./icons/tent.mjs":false,"./icons/terminal-square.mjs":false,"./icons/terminal.mjs":false,"./icons/test-tube-2.mjs":false,"./icons/test-tube.mjs":false,"./icons/test-tubes.mjs":false,"./icons/text-cursor-input.mjs":false,"./icons/text-cursor.mjs":false,"./icons/text-quote.mjs":false,"./icons/text-select.mjs":false,"./icons/text.mjs":false,"./icons/thermometer-snowflake.mjs":false,"./icons/thermometer-sun.mjs":false,"./icons/thermometer.mjs":false,"./icons/thumbs-down.mjs":false,"./icons/thumbs-up.mjs":false,"./icons/ticket.mjs":false,"./icons/timer-off.mjs":false,"./icons/timer-reset.mjs":false,"./icons/timer.mjs":false,"./icons/toggle-left.mjs":false,"./icons/toggle-right.mjs":false,"./icons/tornado.mjs":false,"./icons/touchpad-off.mjs":false,"./icons/touchpad.mjs":false,"./icons/tower-control.mjs":false,"./icons/toy-brick.mjs":false,"./icons/train.mjs":false,"./icons/trash-2.mjs":false,"./icons/trash.mjs":false,"./icons/tree-deciduous.mjs":false,"./icons/tree-pine.mjs":false,"./icons/trees.mjs":false,"./icons/trello.mjs":false,"./icons/trending-down.mjs":false,"./icons/trending-up.mjs":false,"./icons/triangle-right.mjs":false,"./icons/triangle.mjs":false,"./icons/trophy.mjs":"hVI5O","./icons/truck.mjs":false,"./icons/tv-2.mjs":false,"./icons/tv.mjs":false,"./icons/twitch.mjs":false,"./icons/twitter.mjs":false,"./icons/type.mjs":false,"./icons/umbrella.mjs":false,"./icons/underline.mjs":false,"./icons/undo-2.mjs":false,"./icons/undo-dot.mjs":false,"./icons/undo.mjs":false,"./icons/unfold-horizontal.mjs":false,"./icons/unfold-vertical.mjs":false,"./icons/ungroup.mjs":false,"./icons/unlink-2.mjs":false,"./icons/unlink.mjs":false,"./icons/unlock.mjs":false,"./icons/unplug.mjs":false,"./icons/upload-cloud.mjs":false,"./icons/upload.mjs":false,"./icons/usb.mjs":false,"./icons/user-2.mjs":false,"./icons/user-check-2.mjs":false,"./icons/user-check.mjs":"kQSDW","./icons/user-circle-2.mjs":false,"./icons/user-circle.mjs":false,"./icons/user-cog-2.mjs":false,"./icons/user-cog.mjs":false,"./icons/user-minus-2.mjs":false,"./icons/user-minus.mjs":false,"./icons/user-plus-2.mjs":false,"./icons/user-plus.mjs":false,"./icons/user-square-2.mjs":false,"./icons/user-square.mjs":false,"./icons/user-x-2.mjs":false,"./icons/user-x.mjs":false,"./icons/user.mjs":"1I6Ps","./icons/users-2.mjs":false,"./icons/users.mjs":false,"./icons/utensils-crossed.mjs":false,"./icons/utensils.mjs":false,"./icons/utility-pole.mjs":false,"./icons/variable.mjs":false,"./icons/vegan.mjs":false,"./icons/venetian-mask.mjs":false,"./icons/vibrate-off.mjs":false,"./icons/vibrate.mjs":false,"./icons/video-off.mjs":false,"./icons/video.mjs":false,"./icons/videotape.mjs":false,"./icons/view.mjs":false,"./icons/voicemail.mjs":false,"./icons/volume-1.mjs":false,"./icons/volume-2.mjs":false,"./icons/volume-x.mjs":false,"./icons/volume.mjs":false,"./icons/vote.mjs":false,"./icons/wallet-2.mjs":false,"./icons/wallet-cards.mjs":false,"./icons/wallet.mjs":false,"./icons/wallpaper.mjs":false,"./icons/wand-2.mjs":false,"./icons/wand.mjs":false,"./icons/warehouse.mjs":false,"./icons/watch.mjs":false,"./icons/waves.mjs":false,"./icons/webcam.mjs":false,"./icons/webhook.mjs":false,"./icons/wheat-off.mjs":false,"./icons/wheat.mjs":false,"./icons/whole-word.mjs":false,"./icons/wifi-off.mjs":false,"./icons/wifi.mjs":false,"./icons/wind.mjs":false,"./icons/wine-off.mjs":false,"./icons/wine.mjs":false,"./icons/workflow.mjs":false,"./icons/wrap-text.mjs":false,"./icons/wrench.mjs":false,"./icons/x-circle.mjs":"dxOFo","./icons/x-octagon.mjs":false,"./icons/x-square.mjs":false,"./icons/x.mjs":false,"./icons/youtube.mjs":false,"./icons/zap-off.mjs":false,"./icons/zap.mjs":false,"./icons/zoom-in.mjs":false,"./icons/zoom-out.mjs":false,"./createLucideIcon.mjs":false,"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"jRtd7":[function(require,module,exports,__globalThis) {
 /**
  * lucide-react v0.0.1 - ISC
  */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -12487,6 +12679,40 @@ const User = (0, _createLucideIconMjsDefault.default)("User", [
             cy: "7",
             r: "4",
             key: "17ys0d"
+        }
+    ]
+]);
+
+},{"../createLucideIcon.mjs":"jaSj2","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"dxOFo":[function(require,module,exports,__globalThis) {
+/**
+ * lucide-react v0.0.1 - ISC
+ */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "default", ()=>XCircle);
+var _createLucideIconMjs = require("../createLucideIcon.mjs");
+var _createLucideIconMjsDefault = parcelHelpers.interopDefault(_createLucideIconMjs);
+const XCircle = (0, _createLucideIconMjsDefault.default)("XCircle", [
+    [
+        "circle",
+        {
+            cx: "12",
+            cy: "12",
+            r: "10",
+            key: "1mglay"
+        }
+    ],
+    [
+        "path",
+        {
+            d: "m15 9-6 6",
+            key: "1uzhvr"
+        }
+    ],
+    [
+        "path",
+        {
+            d: "m9 9 6 6",
+            key: "z0biqf"
         }
     ]
 ]);
@@ -36293,6 +36519,6 @@ function $da9882e673ac146b$var$ErrorOverlay() {
     return null;
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}]},["CFpQh","56M6J"], "56M6J", "parcelRequireeb17", {}, null, null, "http://localhost:29477")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}]},["fdLei","56M6J"], "56M6J", "parcelRequireeb17", {}, null, null, "http://localhost:1234")
 
 //# sourceMappingURL=scr.3ce44a6c.js.map
