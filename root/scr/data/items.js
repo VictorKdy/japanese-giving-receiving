@@ -1,4 +1,4 @@
-import { Book, Gift, Apple, Coffee, Mail, Banknote, Cookie, Flower } from 'lucide-react';
+import { Book, Gift, Apple, Coffee, Mail, Banknote, Candy, Flower } from 'lucide-react';
 
 // --- Game Items ---
 export const ITEMS = [
@@ -293,7 +293,8 @@ export const ITEMS = [
       { text: '菓子', rt: 'かし' }
     ], 
     label: 'Sweets', 
-    icon: Cookie,
+    english: 'sweets',
+    icon: Candy,
     actions: [
       { 
         te: '作って', 

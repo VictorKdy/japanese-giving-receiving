@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { RotateCcw } from 'lucide-react';
-import { ENTITIES, ITEMS } from '../../data';
 
 // Token types for the sentence builder
 const TOKEN_TYPES = {
@@ -140,7 +139,7 @@ function TokenBank({ tokens, onDragStart, onClick, draggedToken, showEnglish, is
   );
 }
 
-export function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEnglish, isLocked = false, shouldReset = false, onResetComplete }) {
+export function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEnglish, isLocked = false, shouldReset = false, onResetComplete, verbFilters = {} }) {
   const [sentence, setSentence] = useState([]);
   const [draggedToken, setDraggedToken] = useState(null);
   // Track which token IDs are currently used in the sentence (by original id, not instanceId)
@@ -195,53 +194,39 @@ export function SentenceBuilder({ scenario, onSentenceChange, onCheck, showEngli
     },
   ], [scenario]);
 
-  // Combine all tokens and randomize order, including distractors from data files
+  // Combine all tokens and randomize order
+  // - Particles: Always show all 4 particles
+  // - Nouns: Exactly 3 (giver, receiver, item - no distractors)
+  // - Verbs: Only display verbs enabled in settings
   const allTokensRandomized = useMemo(() => {
-    // Get names of scenario entities/items to exclude from distractors
-    const scenarioNames = new Set([
-      scenario.giver.name,
-      scenario.receiver.name,
-      scenario.item.name
-    ]);
+    // Filter verbs based on verbFilters settings
+    // Map verb IDs to settings keys
+    const verbIdToSettingKey = {
+      'yaru': 'yarimasu',
+      'ageru': 'agemasu',
+      'sashiageru': 'sashiagemasu',
+      'kureru': 'kuremasu',
+      'kudasaru': 'kudasaimasu',
+      'morau': 'moraimasu',
+      'itadaku': 'itadakimasu'
+    };
     
-    // Convert ENTITIES to token format and filter out those in scenario
-    const entityDistractors = ENTITIES
-      .filter(e => !scenarioNames.has(e.name))
-      .map(e => ({
-        id: `dist_${e.id}`,
-        text: e.name,
-        reading: e.id,
-        type: TOKEN_TYPES.NOUN,
-        englishLabel: e.label
-      }));
+    const filteredVerbs = AVAILABLE_TOKENS.verbs.filter(verb => {
+      const settingKey = verbIdToSettingKey[verb.id];
+      return verbFilters[settingKey] === true;
+    });
     
-    // Convert ITEMS to token format and filter out those in scenario
-    const itemDistractors = ITEMS
-      .filter(i => !scenarioNames.has(i.name))
-      .map(i => ({
-        id: `dist_${i.id}`,
-        text: i.name,
-        reading: i.id,
-        type: TOKEN_TYPES.NOUN,
-        englishLabel: i.label
-      }));
-    
-    // Pick 2 random entity distractors and 1 random item distractor
-    const shuffledEntities = shuffleArray(entityDistractors);
-    const shuffledItems = shuffleArray(itemDistractors);
-    const selectedDistractors = [
-      ...shuffledEntities.slice(0, 2),
-      ...shuffledItems.slice(0, 1)
-    ];
-    
+    // Build token pool:
+    // - All particles (always shown)
+    // - Only the 3 required nouns (giver, receiver, item)
+    // - Only enabled verbs
     const allTokens = [
-      ...nounTokens,
-      ...AVAILABLE_TOKENS.particles,
-      ...AVAILABLE_TOKENS.verbs,
-      ...selectedDistractors
+      ...nounTokens,                    // Exactly 3 nouns
+      ...AVAILABLE_TOKENS.particles,    // All 4 particles
+      ...filteredVerbs                  // Only enabled verbs
     ];
     return shuffleArray(allTokens);
-  }, [nounTokens, scenario]);
+  }, [nounTokens, verbFilters]);
 
   // Filter available tokens based on which are currently used in the sentence
   // Uses unique IDs to properly handle duplicate words

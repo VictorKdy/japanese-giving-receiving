@@ -270,6 +270,7 @@ export default function App() {
               isLocked={isBuilderLocked}
               shouldReset={shouldResetBuilder}
               onResetComplete={handleBuilderResetComplete}
+              verbFilters={settings.verbFilters}
             />
           ) : (
             <QuizInput 
