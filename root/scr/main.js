@@ -3,7 +3,7 @@ import {
   ArrowRight, User, Gift, Book, Apple, Coffee, 
   RefreshCw, CheckCircle, XCircle, Settings, 
   Menu, Flame, Trophy, Mail, Banknote, Cookie, Flower,
-  GraduationCap, Briefcase, Smile, UserCheck
+  GraduationCap, Briefcase, Smile, UserCheck, CheckCheck
 } from 'lucide-react';
 import './index.css';
 
@@ -142,84 +142,437 @@ function useKeyboardShortcuts({ isCorrect, onNext, onCheck, inputRef }) {
 // --- Game Data ---
 
 const ENTITIES = [
-  { id: 'me', name: '私', label: 'Me (Watashi)', type: 'self', icon: User },
-  { id: 'tanaka', name: '田中さん', label: 'Tanaka-san', type: 'other', icon: Briefcase },
-  { id: 'satou', name: '佐藤さん', label: 'Satou-san', type: 'other', icon: UserCheck },
-  { id: 'sensei', name: '先生', label: 'Teacher (Sensei)', type: 'other', icon: GraduationCap },
-  { id: 'tomodachi', name: '友達', label: 'Friend (Tomodachi)', type: 'other', icon: Smile },
+  { 
+    id: 'me', 
+    name: '私', 
+    furigana: [
+      { text: '私', rt: 'わたし' }
+    ],
+    label: 'Me', 
+    type: 'self', 
+    icon: User 
+  },
+  { 
+    id: 'tanaka', 
+    name: '田中さん', 
+    furigana: [
+      { text: '田中', rt: 'たなか' },
+      { text: 'さん', rt: '' }
+    ], 
+    label: 'Tanaka-san', 
+    type: 'other', 
+    icon: Briefcase 
+  },
+  { 
+    id: 'satou', 
+    name: '佐藤さん', 
+    furigana: [
+      { text: '佐藤', rt: 'さとう' },
+      { text: 'さん', rt: '' }
+    ], 
+    label: 'Satou-san', 
+    type: 'other', 
+    icon: UserCheck 
+  },
+  { 
+    id: 'sensei', 
+    name: '先生', 
+    furigana: [
+      { text: '先生', rt: 'せんせい' }
+    ], 
+    label: 'Teacher', 
+    type: 'other', 
+    icon: GraduationCap 
+  },
+  { 
+    id: 'tomodachi', 
+    name: '友達', 
+    furigana: [
+      { text: '友達', rt: 'ともだち' }
+    ], 
+    label: 'Friend', 
+    type: 'other', 
+    icon: Smile 
+  },
 ];
 
 const ITEMS = [
   { 
-    id: 'book', name: '本', label: 'Book', icon: Book,
+    id: 'book', 
+    name: '本', 
+    furigana: [
+      { text: '本', rt: 'ほん' }
+    ], 
+    label: 'Book', 
+    icon: Book,
     actions: [
-      { te: '貸して', label: 'Lend', meaning: 'Lending a book' },
-      { te: '読んで', label: 'Read', meaning: 'Reading to someone' },
-      { te: '選んで', label: 'Choose', meaning: 'Choosing a book' },
-      { te: '買って', label: 'Buy', meaning: 'Buying a book' }
+      { 
+        te: '貸して', 
+        furigana: [
+          { text: '貸', rt: 'か' },
+          { text: 'して', rt: '' }
+        ], 
+        label: 'Lend', 
+        meaning: 'Lending a book' 
+      },
+      { 
+        te: '読んで', 
+        furigana: [
+          { text: '読', rt: 'よ' },
+          { text: 'んで', rt: '' }
+        ], 
+        label: 'Read', 
+        meaning: 'Reading to someone' 
+      },
+      { 
+        te: '選んで', 
+        furigana: [
+          { text: '選', rt: 'えら' },
+          { text: 'んで', rt: '' }
+        ], 
+        label: 'Choose', 
+        meaning: 'Choosing a book' 
+      },
+      { 
+        te: '買って', 
+        furigana: [
+          { text: '買', rt: 'か' },
+          { text: 'って', rt: '' }
+        ], 
+        label: 'Buy', 
+        meaning: 'Buying a book' 
+      }
     ]
   },
   { 
-    id: 'present', name: 'プレゼント', label: 'Present', icon: Gift,
+    id: 'present', 
+    name: 'プレゼント', 
+    furigana: [
+      { text: 'プレゼント', rt: 'ぷれぜんと' }
+    ], 
+    label: 'Present', 
+    icon: Gift,
     actions: [
-      { te: '包んで', label: 'Wrap', meaning: 'Wrapping a gift' },
-      { te: '選んで', label: 'Choose', meaning: 'Choosing a gift' },
-      { te: '送って', label: 'Send', meaning: 'Sending a gift' },
-      { te: '隠して', label: 'Hide', meaning: 'Hiding a surprise' }
+      { 
+        te: '包んで', 
+        furigana: [
+          { text: '包', rt: 'つつ' },
+          { text: 'んで', rt: '' }
+        ], 
+        label: 'Wrap', 
+        meaning: 'Wrapping a gift' 
+      },
+      { 
+        te: '選んで', 
+        furigana: [
+          { text: '選', rt: 'えら' },
+          { text: 'んで', rt: '' }
+        ], 
+        label: 'Choose', 
+        meaning: 'Choosing a gift' 
+      },
+      { 
+        te: '送って', 
+        furigana: [
+          { text: '送', rt: 'おく' },
+          { text: 'って', rt: '' }
+        ], 
+        label: 'Send', 
+        meaning: 'Sending a gift' 
+      },
+      { 
+        te: '隠して', 
+        furigana: [
+          { text: '隠', rt: 'かく' },
+          { text: 'して', rt: '' }
+        ], 
+        label: 'Hide', 
+        meaning: 'Hiding a surprise' 
+      }
     ]
   },
   { 
-    id: 'apple', name: 'りんご', label: 'Apple', icon: Apple,
+    id: 'apple', 
+    name: 'りんご', 
+    furigana: [
+      { text: 'りんご', rt: '' }
+    ], 
+    label: 'Apple', 
+    icon: Apple,
     actions: [
-      { te: '切って', label: 'Cut', meaning: 'Cutting an apple' },
-      { te: '洗って', label: 'Wash', meaning: 'Washing fruit' },
-      { te: '剥いて', label: 'Peel', meaning: 'Peeling fruit' },
-      { te: '送って', label: 'Send', meaning: 'Sending apples' }
+      { 
+        te: '切って', 
+        furigana: [
+          { text: '切', rt: 'き' },
+          { text: 'って', rt: '' }
+        ], 
+        label: 'Cut', 
+        meaning: 'Cutting an apple' 
+      },
+      { 
+        te: '洗って', 
+        furigana: [
+          { text: '洗', rt: 'あら' },
+          { text: 'って', rt: '' }
+        ], 
+        label: 'Wash', 
+        meaning: 'Washing fruit' 
+      },
+      { 
+        te: '剥いて', 
+        furigana: [
+          { text: '剥', rt: 'む' },
+          { text: 'いて', rt: '' }
+        ], 
+        label: 'Peel', 
+        meaning: 'Peeling fruit' 
+      },
+      { 
+        te: '送って', 
+        furigana: [
+          { text: '送', rt: 'おく' },
+          { text: 'って', rt: '' }
+        ], 
+        label: 'Send', 
+        meaning: 'Sending apples' 
+      }
     ]
   },
   { 
-    id: 'coffee', name: 'コーヒー', label: 'Coffee', icon: Coffee,
+    id: 'coffee', 
+    name: 'コーヒー', 
+    furigana: [
+      { text: 'コーヒー', rt: 'こーひー' }
+    ], 
+    label: 'Coffee', 
+    icon: Coffee,
     actions: [
-      { te: '淹れて', label: 'Brew', meaning: 'Brewing coffee' },
-      { te: '買って', label: 'Buy', meaning: 'Buying coffee' },
-      { te: '持ってきて', label: 'Bring', meaning: 'Bringing coffee' },
-      { te: '注文して', label: 'Order', meaning: 'Ordering coffee' }
+      { 
+        te: '淹れて', 
+        furigana: [
+          { text: '淹', rt: 'い' },
+          { text: 'れて', rt: '' }
+        ], 
+        label: 'Brew', 
+        meaning: 'Brewing coffee' 
+      },
+      { 
+        te: '買って', 
+        furigana: [
+          { text: '買', rt: 'か' },
+          { text: 'って', rt: '' }
+        ], 
+        label: 'Buy', 
+        meaning: 'Buying coffee' 
+      },
+      { 
+        te: '持ってきて', 
+        furigana: [
+          { text: '持', rt: 'も' },
+          { text: 'ってきて', rt: '' }
+        ], 
+        label: 'Bring', 
+        meaning: 'Bringing coffee' 
+      },
+      { 
+        te: '注文して', 
+        furigana: [
+          { text: '注文', rt: 'ちゅうもん' },
+          { text: 'して', rt: '' }
+        ], 
+        label: 'Order', 
+        meaning: 'Ordering coffee' 
+      }
     ]
   },
   { 
-    id: 'letter', name: '手紙', label: 'Letter', icon: Mail,
+    id: 'letter', 
+    name: '手紙', 
+    furigana: [
+      { text: '手紙', rt: 'てがみ' }
+    ], 
+    label: 'Letter', 
+    icon: Mail,
     actions: [
-      { te: '書いて', label: 'Write', meaning: 'Writing a letter' },
-      { te: '読んで', label: 'Read', meaning: 'Reading a letter' },
-      { te: '翻訳して', label: 'Translate', meaning: 'Translating a letter' },
-      { te: '出して', label: 'Mail', meaning: 'Mailing a letter' }
+      { 
+        te: '書いて', 
+        furigana: [
+          { text: '書', rt: 'か' },
+          { text: 'いて', rt: '' }
+        ], 
+        label: 'Write', 
+        meaning: 'Writing a letter' 
+      },
+      { 
+        te: '読んで', 
+        furigana: [
+          { text: '読', rt: 'よ' },
+          { text: 'んで', rt: '' }
+        ], 
+        label: 'Read', 
+        meaning: 'Reading a letter' 
+      },
+      { 
+        te: '翻訳して', 
+        furigana: [
+          { text: '翻訳', rt: 'ほんやく' },
+          { text: 'して', rt: '' }
+        ], 
+        label: 'Translate', 
+        meaning: 'Translating a letter' 
+      },
+      { 
+        te: '出して', 
+        furigana: [
+          { text: '出', rt: 'だ' },
+          { text: 'して', rt: '' }
+        ], 
+        label: 'Mail', 
+        meaning: 'Mailing a letter' 
+      }
     ]
   },
   { 
-    id: 'money', name: 'お金', label: 'Money', icon: Banknote,
+    id: 'money', 
+    name: 'お金', 
+    furigana: [
+      { text: 'お', rt: '' },
+      { text: '金', rt: 'かね' }
+    ], 
+    label: 'Money', 
+    icon: Banknote,
     actions: [
-      { te: '貸して', label: 'Lend', meaning: 'Lending money' },
-      { te: '払って', label: 'Pay', meaning: 'Paying for someone' },
-      { te: '両替して', label: 'Exchange', meaning: 'Exchanging money' },
-      { te: '送金して', label: 'Wire', meaning: 'Wiring money' }
+      { 
+        te: '貸して', 
+        furigana: [
+          { text: '貸', rt: 'か' },
+          { text: 'して', rt: '' }
+        ], 
+        label: 'Lend', 
+        meaning: 'Lending money' 
+      },
+      { 
+        te: '払って', 
+        furigana: [
+          { text: '払', rt: 'はら' },
+          { text: 'って', rt: '' }
+        ], 
+        label: 'Pay', 
+        meaning: 'Paying for someone' 
+      },
+      { 
+        te: '両替して', 
+        furigana: [
+          { text: '両替', rt: 'りょうがえ' },
+          { text: 'して', rt: '' }
+        ], 
+        label: 'Exchange', 
+        meaning: 'Exchanging money' 
+      },
+      { 
+        te: '送金して', 
+        furigana: [
+          { text: '送金', rt: 'そうきん' },
+          { text: 'して', rt: '' }
+        ], 
+        label: 'Wire', 
+        meaning: 'Wiring money' 
+      }
     ]
   },
   { 
-    id: 'sweets', name: 'お菓子', label: 'Sweets', icon: Cookie,
+    id: 'sweets', 
+    name: 'お菓子', 
+    furigana: [
+      { text: 'お', rt: '' },
+      { text: '菓子', rt: 'かし' }
+    ], 
+    label: 'Sweets', 
+    icon: Cookie,
     actions: [
-      { te: '作って', label: 'Make', meaning: 'Baking sweets' },
-      { te: '選んで', label: 'Choose', meaning: 'Choosing sweets' },
-      { te: '配って', label: 'Distribute', meaning: 'Handing out sweets' },
-      { te: '買って', label: 'Buy', meaning: 'Buying sweets' }
+      { 
+        te: '作って', 
+        furigana: [
+          { text: '作', rt: 'つく' },
+          { text: 'って', rt: '' }
+        ], 
+        label: 'Make', 
+        meaning: 'Baking sweets' 
+      },
+      { 
+        te: '選んで', 
+        furigana: [
+          { text: '選', rt: 'えら' },
+          { text: 'んで', rt: '' }
+        ], 
+        label: 'Choose', 
+        meaning: 'Choosing sweets' 
+      },
+      { 
+        te: '配って', 
+        furigana: [
+          { text: '配', rt: 'くば' },
+          { text: 'って', rt: '' }
+        ], 
+        label: 'Distribute', 
+        meaning: 'Handing out sweets' 
+      },
+      { 
+        te: '買って', 
+        furigana: [
+          { text: '買', rt: 'か' },
+          { text: 'って', rt: '' }
+        ], 
+        label: 'Buy', 
+        meaning: 'Buying sweets' 
+      }
     ]
   },
   { 
-    id: 'flower', name: '花', label: 'Flowers', icon: Flower,
+    id: 'flower', 
+    name: '花', 
+    furigana: [
+      { text: '花', rt: 'はな' }
+    ], 
+    label: 'Flowers', 
+    icon: Flower,
     actions: [
-      { te: '飾って', label: 'Decorate', meaning: 'Displaying flowers' },
-      { te: '選んで', label: 'Choose', meaning: 'Choosing flowers' },
-      { te: '届けて', label: 'Deliver', meaning: 'Delivering flowers' },
-      { te: '生けて', label: 'Arrange', meaning: 'Arranging flowers' }
+      { 
+        te: '飾って', 
+        furigana: [
+          { text: '飾', rt: 'かざ' },
+          { text: 'って', rt: '' }
+        ], 
+        label: 'Decorate', 
+        meaning: 'Displaying flowers' 
+      },
+      { 
+        te: '選んで', 
+        furigana: [
+          { text: '選', rt: 'えら' },
+          { text: 'んで', rt: '' }
+        ], 
+        label: 'Choose', 
+        meaning: 'Choosing flowers' 
+      },
+      { 
+        te: '届けて', 
+        furigana: [
+          { text: '届', rt: 'とど' },
+          { text: 'けて', rt: '' }
+        ], 
+        label: 'Deliver', 
+        meaning: 'Delivering flowers' 
+      },
+      { 
+        te: '生けて', 
+        furigana: [
+          { text: '生', rt: 'い' },
+          { text: 'けて', rt: '' }
+        ], 
+        label: 'Arrange', 
+        meaning: 'Arranging flowers' 
+      }
     ]
   },
 ];
@@ -275,8 +628,11 @@ const validateInput = (input, scenario, isAdvanced) => {
     if (!cleanInput.includes(action.te)) {
       return { valid: false, message: `Use the correct Te-form action: ${action.te} (${action.label})` };
     }
-    // Check combined form sequence (Action + Verb)
-    // We don't strictly enforce adjacency for flexibility, but they should both be present.
+    // Check that te-form appears directly before the auxiliary verb
+    const teFormWithVerb = action.te + requiredVerb;
+    if (!cleanInput.includes(teFormWithVerb)) {
+      return { valid: false, message: `Connect the te-form directly to the verb: ${action.te}${requiredVerb}` };
+    }
   }
 
   // Check Verb
@@ -310,8 +666,38 @@ const validateInput = (input, scenario, isAdvanced) => {
 
 // --- Components ---
 
-const EntityDisplay = ({ entity, role, isPerspective }) => {
+// Helper to check if character is Kanji or Katakana (needs furigana)
+const needsFurigana = (text) => {
+  // Kanji range: \u4e00-\u9faf, Katakana range: \u30a0-\u30ff
+  return /[\u4e00-\u9faf\u30a0-\u30ff]/.test(text);
+};
+
+// RubyText component - renders furigana only above Kanji/Katakana
+const RubyText = ({ data, showFurigana, textClass = "text-lg font-bold text-gray-200" }) => {
+  if (!data || !Array.isArray(data)) return null;
+  
+  return (
+    <span className="inline-flex items-end">
+      {data.map((item, idx) => {
+        const hasKanjiOrKatakana = needsFurigana(item.text);
+        const shouldShowRt = showFurigana && item.rt && hasKanjiOrKatakana;
+        
+        return (
+          <span key={idx} className="inline-flex flex-col items-center">
+            {shouldShowRt && (
+              <span className="text-xs text-gray-400 font-normal text-center leading-tight">{item.rt}</span>
+            )}
+            <span className={textClass}>{item.text}</span>
+          </span>
+        );
+      })}
+    </span>
+  );
+};
+
+const EntityDisplay = ({ entity, role, isPerspective, showEnglish, showFurigana }) => {
   const EntityIcon = entity.icon || User;
+  
   return (
     <div className={`flex flex-col items-center p-4 rounded-xl border transition-all duration-300 w-32 ${
       isPerspective 
@@ -323,28 +709,37 @@ const EntityDisplay = ({ entity, role, isPerspective }) => {
       }`}>
         <EntityIcon size={24} />
       </div>
-      <span className="font-bold text-sm text-gray-200">{entity.name}</span>
-      <span className="text-[10px] text-gray-500 mt-1">{entity.label}</span>
-      <div className={`mt-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${
+      <RubyText 
+        data={entity.furigana} 
+        showFurigana={showFurigana} 
+        textClass="text-xl font-bold text-gray-200"
+      />
+      {showEnglish && (
+        <span className="text-xs text-gray-500 mt-1">{entity.label}</span>
+      )}
+      <div className={`mt-2 px-2 py-0.5 rounded text-base font-bold tracking-wide flex flex-col items-center ${
         role === 'giver' ? 'bg-green-900/30 text-green-400' : 'bg-purple-900/30 text-purple-400'
       }`}>
-        {role}
+        <span>{role === 'giver' ? '贈り手' : '受け手'}</span>
+        {showEnglish && (
+          <span className="text-xs opacity-70">{role === 'giver' ? 'Giver' : 'Receiver'}</span>
+        )}
       </div>
       {isPerspective && (
-        <div className="mt-2 text-indigo-400 text-[10px] font-bold flex items-center animate-pulse">
-          <CheckCircle size={10} className="mr-1" /> TOPIC
+        <div className="mt-2 text-indigo-400 text-xs font-bold flex items-center animate-pulse">
+          <CheckCircle size={12} className="mr-1" /> 主題
         </div>
       )}
     </div>
   );
 };
 
-const Checkbox = ({ label, checked, onChange, colorClass = "bg-indigo-600" }) => (
+const Checkbox = ({ label, checked, onChange, colorClass = "bg-green-600" }) => (
   <label className="flex items-center gap-3 cursor-pointer group mb-2 select-none">
     <div className={`w-5 h-5 rounded border border-gray-600 flex items-center justify-center transition-all ${
-      checked ? `${colorClass} border-transparent` : 'bg-[#222] group-hover:border-gray-500'
+      checked ? 'bg-green-600 border-transparent' : 'bg-[#222] group-hover:border-gray-500'
     }`}>
-      {checked && <CheckCircle size={14} className="text-white" />}
+      {checked && <CheckCheck size={14} className="text-white" />}
     </div>
     <span className={`text-sm ${checked ? 'text-gray-200 font-bold' : 'text-gray-500'}`}>{label}</span>
     <input type="checkbox" className="hidden" checked={checked} onChange={onChange} />
@@ -360,6 +755,8 @@ export default function App() {
   const [isCorrect, setIsCorrect] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [invalidInput, setInvalidInput] = useState(false);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [showItemName, setShowItemName] = useState(false);
   
   const inputRef = useRef(null);
   
@@ -409,15 +806,39 @@ export default function App() {
   // Settings State
   const [settings, setSettings] = useState({
     hints: false,
-    furigana: true,
-    englishLabels: true,
+    furigana: false,
+    englishLabels: false,
     advancedMode: false,
     meCentric: false, // New State: Personal Focus Mode
+    verbFilters: {
+      moraimasu: true,  // もらいます
+      kuremasu: true,   // くれます
+      agemasu: true,    // あげます
+    },
   });
 
   const generateScenario = () => {
     let giver, receiver, perspective;
     const item = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+    
+    // Get enabled verb filters
+    const { moraimasu, kuremasu, agemasu } = settings.verbFilters;
+    
+    // If no verbs are selected, default to all
+    const hasAnyFilter = moraimasu || kuremasu || agemasu;
+    const effectiveFilters = hasAnyFilter 
+      ? { moraimasu, kuremasu, agemasu } 
+      : { moraimasu: true, kuremasu: true, agemasu: true };
+
+    // Build array of allowed scenario configurations
+    const allowedConfigs = [];
+    
+    // もらいます: perspective is receiver (getting from giver)
+    if (effectiveFilters.moraimasu) allowedConfigs.push('moraimasu');
+    // くれます: perspective is giver, receiver is 'me'
+    if (effectiveFilters.kuremasu) allowedConfigs.push('kuremasu');
+    // あげます: perspective is giver, receiver is NOT 'me'
+    if (effectiveFilters.agemasu) allowedConfigs.push('agemasu');
 
     if (settings.meCentric) {
       // Logic for Me-Centric Mode: Topic MUST be 'me'
@@ -428,26 +849,56 @@ export default function App() {
       // Me is the topic (perspective)
       perspective = me;
       
-      // Determine if Me is Giver (Ageru) or Receiver (Morau)
-      // Kureru is excluded because Topic is Me, and Kureru requires Other as Topic
-      const isMeGiver = Math.random() > 0.5;
+      // Filter allowed verbs for me-centric mode
+      // Me-centric can only use: moraimasu (me receives) or agemasu (me gives)
+      const meCentricConfigs = allowedConfigs.filter(c => c === 'moraimasu' || c === 'agemasu');
       
-      if (isMeGiver) {
-        giver = me;
-        receiver = other;
-      } else {
+      if (meCentricConfigs.length === 0) {
+        // Fallback if only kuremasu is selected in me-centric mode
         giver = other;
         receiver = me;
+      } else {
+        const chosenConfig = meCentricConfigs[Math.floor(Math.random() * meCentricConfigs.length)];
+        
+        if (chosenConfig === 'agemasu') {
+          giver = me;
+          receiver = other;
+        } else {
+          giver = other;
+          receiver = me;
+        }
       }
 
     } else {
-      // Standard Logic
-      giver = ENTITIES[Math.floor(Math.random() * ENTITIES.length)];
-      receiver = ENTITIES[Math.floor(Math.random() * ENTITIES.length)];
-      while (giver.id === receiver.id) {
+      // Standard Logic with verb filtering
+      let attempts = 0;
+      const maxAttempts = 50;
+      
+      do {
+        giver = ENTITIES[Math.floor(Math.random() * ENTITIES.length)];
         receiver = ENTITIES[Math.floor(Math.random() * ENTITIES.length)];
-      }
-      perspective = Math.random() > 0.5 ? giver : receiver;
+        while (giver.id === receiver.id) {
+          receiver = ENTITIES[Math.floor(Math.random() * ENTITIES.length)];
+        }
+        perspective = Math.random() > 0.5 ? giver : receiver;
+        
+        // Check if this configuration matches an allowed verb
+        const isSubjectGiver = perspective.id === giver.id;
+        let matchedVerb = '';
+        
+        if (isSubjectGiver) {
+          if (receiver.id === 'me') {
+            matchedVerb = 'kuremasu';
+          } else {
+            matchedVerb = 'agemasu';
+          }
+        } else {
+          matchedVerb = 'moraimasu';
+        }
+        
+        if (allowedConfigs.includes(matchedVerb)) break;
+        attempts++;
+      } while (attempts < maxAttempts);
     }
     
     // Pick specific action for advanced mode
@@ -460,11 +911,12 @@ export default function App() {
     setInputValue("");
     setFeedback(null);
     setIsCorrect(false);
+    setShowItemName(false);
   };
 
   useEffect(() => {
     generateScenario();
-  }, [settings.advancedMode, settings.meCentric]); // Regenerate when modes toggle
+  }, [settings.advancedMode, settings.meCentric, settings.verbFilters.moraimasu, settings.verbFilters.kuremasu, settings.verbFilters.agemasu]); // Regenerate when modes or verb filters toggle
 
   const handleCheck = () => {
     if (!scenario) return;
@@ -516,111 +968,134 @@ export default function App() {
 
         {/* Dropdown Menu */}
         {isSettingsOpen && (
-          <div className="absolute top-full left-0 mt-2 w-72 bg-[#222] border border-[#333] rounded-xl shadow-2xl p-4 animate-in fade-in slide-in-from-top-2">
+          <div className="absolute top-full left-0 mt-2 w-72 max-h-[80vh] overflow-y-auto bg-[#222] border border-[#333] rounded-xl shadow-2xl p-4 animate-in fade-in slide-in-from-top-2">
             
+            {/* Verb Filter Selection */}
+            <div className="mb-6">
+              <h3 className="text-[11px] font-bold text-gray-400 tracking-wider mb-1">VERB FILTER</h3>
+              <hr className="border-[#333] mb-2" />
+              <Checkbox 
+                label="もらいます" 
+                checked={settings.verbFilters.moraimasu} 
+                onChange={() => setSettings(s => ({...s, verbFilters: {...s.verbFilters, moraimasu: !s.verbFilters.moraimasu}}))} 
+              />
+              <Checkbox 
+                label="くれます" 
+                checked={settings.verbFilters.kuremasu} 
+                onChange={() => setSettings(s => ({...s, verbFilters: {...s.verbFilters, kuremasu: !s.verbFilters.kuremasu}}))} 
+              />
+              <Checkbox 
+                label="あげます" 
+                checked={settings.verbFilters.agemasu} 
+                onChange={() => setSettings(s => ({...s, verbFilters: {...s.verbFilters, agemasu: !s.verbFilters.agemasu}}))} 
+              />
+            </div>
+
             {/* Level Selection */}
-             <div className="mb-6 pb-6 border-b border-[#333]">
-              <h3 className="text-[11px] font-bold text-gray-400 tracking-wider mb-1 underline">難易度</h3>
-              <p className="text-[9px] text-gray-500 mb-3">Difficulty</p>
+             <div className="mb-6">
+              <h3 className="text-[11px] font-bold text-gray-400 tracking-wider mb-1">DIFFICULTY</h3>
+              <hr className="border-[#333] mb-2" />
               <Checkbox 
                 label="私中心モード" 
                 checked={settings.meCentric} 
                 onChange={() => setSettings(s => ({...s, meCentric: !s.meCentric}))} 
-                colorClass="bg-blue-600"
               />
-              <p className="text-[10px] text-gray-500 ml-8 mt-1 mb-3">
-                Personal Focus (Me-Centric)
+              <p className="text-[10px] text-gray-500 ml-8 -mt-1 mb-2">
+                Me-Centric Mode
               </p>
 
               <Checkbox 
                 label="て形練習" 
                 checked={settings.advancedMode} 
                 onChange={() => setSettings(s => ({...s, advancedMode: !s.advancedMode}))} 
-                colorClass="bg-rose-600"
               />
-              <p className="text-[10px] text-gray-500 ml-8 mt-1">
+              <p className="text-[10px] text-gray-500 ml-8 -mt-1">
                 Advanced Te-form Practice
               </p>
             </div>
 
             {/* Display Options */}
             <div className="mb-6">
-              <h3 className="text-[11px] font-bold text-gray-400 tracking-wider mb-1 underline">表示設定</h3>
-              <p className="text-[9px] text-gray-500 mb-3">Display Options</p>
+              <h3 className="text-[11px] font-bold text-gray-400 tracking-wider mb-1">DISPLAY OPTIONS</h3>
+              <hr className="border-[#333] mb-2" />
               <Checkbox 
                 label="英語表記" 
                 checked={settings.englishLabels} 
                 onChange={() => setSettings(s => ({...s, englishLabels: !s.englishLabels}))} 
               />
-              <p className="text-[10px] text-gray-500 ml-8 mt-1 mb-3">English Labels</p>
+              <p className="text-[10px] text-gray-500 ml-8 -mt-1 mb-2">English Labels</p>
               <Checkbox 
                 label="振仮名" 
                 checked={settings.furigana} 
                 onChange={() => setSettings(s => ({...s, furigana: !s.furigana}))} 
               />
-              <p className="text-[10px] text-gray-500 ml-8 mt-1">Furigana</p>
+              <p className="text-[10px] text-gray-500 ml-8 -mt-1">Furigana</p>
             </div>
 
             {/* Quiz Mode */}
             <div className="mb-4">
-              <h3 className="text-[11px] font-bold text-gray-400 tracking-wider mb-1 underline">クイズ補助</h3>
-              <p className="text-[9px] text-gray-500 mb-3">Quiz Helper</p>
+              <h3 className="text-[11px] font-bold text-gray-400 tracking-wider mb-1">QUIZ HELPER</h3>
+              <hr className="border-[#333] mb-2" />
               <Checkbox 
                 label="文法ヒント" 
                 checked={settings.hints} 
                 onChange={() => setSettings(s => ({...s, hints: !s.hints}))} 
-                colorClass="bg-yellow-600"
               />
-              <p className="text-[10px] text-gray-500 ml-8 mt-1">Show Hints</p>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-[#333] text-[10px] text-gray-600 text-center">
-              Ver 2.4 • Personal Focus Mode
+              <p className="text-[10px] text-gray-500 ml-8 -mt-1">Show Hints</p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Main Content Area - Top 60% */}
-      <main className="h-[60%] flex flex-col items-center justify-center w-full relative">
+      {/* Main Content Area */}
+      <main className="h-full flex flex-col items-center justify-center w-full relative max-h-[60vh]">
         
         {/* Top Right: Streak Counters */}
-        <div className="absolute top-8 right-8 flex flex-col items-end gap-2">
+        <div className="absolute top-8 right-8 flex flex-col items-end gap-3">
            <div className="flex flex-col items-end">
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
-              Top Streak <Trophy size={12} className={maxStreak > 0 ? "text-yellow-500" : "text-gray-600"} />
+            <span className="text-xs font-bold text-gray-200 uppercase tracking-wider mb-1 flex items-center gap-1">
+              現在のストリーク <Flame size={14} className={streak > 0 ? "text-orange-400" : "text-gray-400"} />
             </span>
-            <span className={`text-xl font-mono ${maxStreak > 0 ? "text-yellow-400" : "text-gray-600"}`}>{maxStreak}</span>
+            <span className={`text-3xl font-mono font-bold ${streak > 0 ? "text-orange-300" : "text-gray-400"}`}>{streak}</span>
           </div>
 
           <div className="flex flex-col items-end">
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
-              Current Streak <Flame size={12} className={streak > 0 ? "text-orange-500" : "text-gray-600"} />
+            <span className="text-xs font-bold text-gray-200 uppercase tracking-wider mb-1 flex items-center gap-1">
+              最高ストリーク <Trophy size={14} className={maxStreak > 0 ? "text-yellow-400" : "text-gray-400"} />
             </span>
-            <span className={`text-xl font-mono ${streak > 0 ? "text-orange-400" : "text-gray-600"}`}>{streak}</span>
+            <span className={`text-3xl font-mono font-bold ${maxStreak > 0 ? "text-yellow-300" : "text-gray-400"}`}>{maxStreak}</span>
           </div>
         </div>
 
         {/* Visual Scenario */}
         <div className="w-full max-w-2xl mb-8">
            <div className="flex items-center justify-between px-8 md:px-16">
-              <EntityDisplay entity={scenario.giver} role="giver" isPerspective={scenario.perspective.id === scenario.giver.id} />
+              <EntityDisplay entity={scenario.giver} role="giver" isPerspective={scenario.perspective.id === scenario.giver.id} showEnglish={settings.englishLabels} showFurigana={settings.furigana} />
               
               <div className="flex flex-col items-center mx-4">
-                  <div className="bg-[#2a2a2a] p-4 rounded-full border border-[#333] mb-3 relative group flex items-center justify-center w-20 h-20">
-                    <ItemIcon size={32} className="text-gray-300" />
+                  <div 
+                    className="bg-[#2a2a2a] p-4 rounded-full border border-[#333] mb-3 relative flex items-center justify-center w-20 h-20 cursor-pointer hover:border-gray-500 transition-colors"
+                    onClick={() => setShowItemName(!showItemName)}
+                  >
+                    <ItemIcon size={32} className="text-yellow-400" />
                     
                     {/* Advanced Mode Action Overlay */}
                     {settings.advancedMode && scenario.action && (
-                       <div className="absolute -bottom-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap z-10">
+                       <div className="absolute -bottom-2 bg-red-800 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap z-10">
                           {scenario.action.te}
                        </div>
                     )}
 
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-black text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-20">
-                        {scenario.item.name}
-                        {settings.advancedMode && scenario.action && ` (${scenario.action.label})`}
-                    </div>
+                    {/* Click-to-reveal item name */}
+                    {showItemName && (
+                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black text-white text-sm px-3 py-1.5 rounded whitespace-nowrap z-20 animate-in fade-in zoom-in">
+                        <RubyText 
+                          data={scenario.item.furigana} 
+                          showFurigana={settings.furigana} 
+                          textClass="text-base font-medium text-white"
+                        />
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex items-center text-[#444] mt-2 relative">
@@ -628,7 +1103,7 @@ export default function App() {
                       <ArrowRight size={20} className="text-[#555] -ml-1" />
                       
                       {/* Advanced Mode Meaning */}
-                      {settings.advancedMode && scenario.action && (
+                      {settings.advancedMode && scenario.action && settings.englishLabels && (
                           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-[10px] text-rose-400 font-medium whitespace-nowrap">
                              {scenario.action.meaning}
                           </div>
@@ -636,7 +1111,7 @@ export default function App() {
                   </div>
               </div>
 
-              <EntityDisplay entity={scenario.receiver} role="receiver" isPerspective={scenario.perspective.id === scenario.receiver.id} />
+              <EntityDisplay entity={scenario.receiver} role="receiver" isPerspective={scenario.perspective.id === scenario.receiver.id} showEnglish={settings.englishLabels} showFurigana={settings.furigana} />
            </div>
         </div>
 
@@ -650,7 +1125,7 @@ export default function App() {
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              disabled={isCorrect}
+              disabled={isCorrect || showAnswer}
               placeholder={settings.advancedMode ? `...${scenario.item.name}を${scenario.action?.te}...` : "文を入力... (e.g. 私は田中さんに本をあげます)"}
               className={`w-full bg-white text-gray-900 rounded-full py-4 px-8 text-lg font-medium shadow-[0_0_20px_rgba(0,0,0,0.3)] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all disabled:opacity-80 disabled:bg-gray-200 ${invalidInput ? 'animate-giggle ring-2 ring-red-500' : ''}`}
             />
@@ -661,48 +1136,113 @@ export default function App() {
             )}
           </div>
           
-          {/* Feedback Text */}
-          <div className="h-6">
-             {feedback && (
+          {/* Feedback Text / Answer Explanation */}
+          <div className="min-h-[24px]">
+             {feedback && !showAnswer && (
                 <span className={`text-sm font-medium animate-in fade-in slide-in-from-bottom-2 ${feedback.type === 'success' ? 'text-green-400' : 'text-rose-400'}`}>
                    {feedback.text}
                 </span>
              )}
-             {!feedback && <span className="text-gray-600 text-sm">
-                {settings.advancedMode ? "Combine Te-form with giving/receiving verb." : "Write a sentence describing the diagram."}
-             </span>}
+             {showAnswer && (
+                <div className="text-center animate-in fade-in slide-in-from-bottom-2 space-y-2">
+                   <p className="text-white text-xs font-bold">正しい回答</p>
+                   <p className="text-white text-base font-medium inline-flex flex-wrap items-end justify-center gap-0">
+                      {/* Perspective (Topic) - Giver or Receiver color */}
+                      <span className={scenario.perspective.id === scenario.giver.id ? 'text-green-400 font-bold' : 'text-purple-400 font-bold'}>
+                        <RubyText 
+                          data={scenario.perspective.furigana} 
+                          showFurigana={settings.furigana} 
+                          textClass={scenario.perspective.id === scenario.giver.id ? 'text-base font-bold text-green-400' : 'text-base font-bold text-purple-400'}
+                        />
+                      </span>
+                      <span className="text-white">は</span>
+                      {/* Interaction Target - opposite role color */}
+                      <span className={scenario.perspective.id === scenario.giver.id ? 'text-purple-400 font-bold' : 'text-green-400 font-bold'}>
+                        <RubyText 
+                          data={scenario.perspective.id === scenario.giver.id ? scenario.receiver.furigana : scenario.giver.furigana} 
+                          showFurigana={settings.furigana} 
+                          textClass={scenario.perspective.id === scenario.giver.id ? 'text-base font-bold text-purple-400' : 'text-base font-bold text-green-400'}
+                        />
+                      </span>
+                      <span className="text-white">に</span>
+                      {/* Item - Yellow */}
+                      <span className="text-yellow-400 font-bold">
+                        <RubyText 
+                          data={scenario.item.furigana} 
+                          showFurigana={settings.furigana} 
+                          textClass="text-base font-bold text-yellow-400"
+                        />
+                      </span>
+                      <span className="text-white">を</span>
+                      {/* Te-form verb - Dark Red */}
+                      {settings.advancedMode && scenario.action && (
+                        <span className="text-red-700 font-bold">
+                          <RubyText 
+                            data={scenario.action.furigana} 
+                            showFurigana={settings.furigana} 
+                            textClass="text-base font-bold text-red-700"
+                          />
+                        </span>
+                      )}
+                      {/* Giving/Receiving verb - Blue */}
+                      <span className="text-blue-500 font-bold">
+                      {scenario.perspective.id === scenario.giver.id 
+                        ? (scenario.receiver.id === 'me' ? 'くれます' : 'あげます')
+                        : 'もらいます'
+                      }
+                      </span>
+                   </p>
+                   {settings.advancedMode && scenario.action && settings.englishLabels && (
+                      <p className="text-rose-400 text-sm">({scenario.action.meaning})</p>
+                   )}
+                </div>
+             )}
           </div>
 
           {/* Action Buttons */}
           <div className="flex gap-4">
-             <button 
-                onClick={() => setInputValue("わからない")}
-                className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
-             >
-                わからない (Skip)
-             </button>
-             
-             {isCorrect && (
+             {!isCorrect && !showAnswer && (
                <button 
-                 onClick={generateScenario}
-                 className="flex items-center gap-2 bg-[#333] hover:bg-[#444] text-white px-6 py-2 rounded-full text-sm font-bold transition-all border border-gray-700"
+                  onClick={() => {
+                    setShowAnswer(true);
+                    setStreak(0);
+                  }}
+                  className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
                >
-                 <RefreshCw size={14} /> Next Question
+                  わからない
                </button>
+             )}
+             
+             {(isCorrect || showAnswer) && (
+               <>
+                 <button 
+                   onClick={() => {
+                     setInputValue("");
+                     setFeedback(null);
+                     setIsCorrect(false);
+                     setShowAnswer(false);
+                     if (inputRef.current) inputRef.current.focus();
+                   }}
+                   className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-full text-sm transition-colors"
+                 >
+                   もう一度
+                 </button>
+                 <button 
+                   onClick={() => {
+                     generateScenario();
+                     setShowAnswer(false);
+                   }}
+                   className={`${isCorrect ? 'bg-green-700 hover:bg-green-600' : 'bg-red-700 hover:bg-red-600'} text-white font-bold py-2 px-6 rounded-full text-sm transition-colors`}
+                 >
+                   次へ
+                 </button>
+               </>
              )}
           </div>
 
         </div>
 
       </main>
-      
-      {/* Bottom 40% - Empty Neutral Background */}
-      <div className="h-[40%] bg-[#151515] border-t border-[#222] flex items-center justify-center">
-         {/* Optional: Subtle branding or version info could go here, but kept clear as requested */}
-         <div className="text-[#333] text-xs font-mono">
-            Neutral Zone
-         </div>
-      </div>
     </div>
   );
 }
@@ -710,6 +1250,10 @@ export default function App() {
 // --- React Render ---
 import ReactDOM from 'react-dom/client';
 
+let globalRoot = null;
+
 const rootElement = document.getElementById('root');
-const root = ReactDOM.createRoot(rootElement);
-root.render(<App />);
+if (!globalRoot) {
+  globalRoot = ReactDOM.createRoot(rootElement);
+}
+globalRoot.render(<App />);
