@@ -87,6 +87,104 @@ const isValidJapaneseInput = (str) => {
   return /^[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf\u3001-\u3003\u3005\u3007-\u3011a-zA-Z\s\-.,!?！？。、ー]*$/.test(str);
 };
 
+// Helper to normalize Katakana to Hiragana for comparison
+// Unicode Shift: Katakana (30A0-30FF) - 0x60 = Hiragana (3040-309F)
+const toHiragana = (str) => {
+  return str.replace(/[\u30a1-\u30f6]/g, (match) => {
+    const chr = match.charCodeAt(0) - 0x60;
+    return String.fromCharCode(chr);
+  });
+};
+
+// Check if string contains only Hiragana characters (strict validation)
+const isHiraganaOnly = (str) => /^[\u3041-\u3096]+$/u.test(str);
+
+// --- Validation Error Messages (Localized) ---
+const VALIDATION_ERRORS = {
+  sentenceTooShort: {
+    ja: '文が短すぎます。',
+    en: 'Sentence is too short.'
+  },
+  missingTopic: {
+    ja: (name) => `主題から始めてください：${name}は...`,
+    en: (name) => `Start with the topic: ${name}は...`
+  },
+  missingObject: {
+    ja: (name) => `目的語を含めてください：${name}を...`,
+    en: (name) => `Include the object: ${name}を...`
+  },
+  noActionDefined: {
+    ja: 'エラー：アクションが定義されていません。',
+    en: 'Error: No action defined.'
+  },
+  wrongTeForm: {
+    ja: (te, label) => `正しいて形を使ってください：${te}（${label}）`,
+    en: (te, label) => `Use the correct Te-form action: ${te} (${label})`
+  },
+  teFormConnection: {
+    ja: (te, verb) => `て形を動詞に直接つなげてください：${te}${verb}`,
+    en: (te, verb) => `Connect the te-form directly to the verb: ${te}${verb}`
+  },
+  useKuremasu: {
+    ja: '自分がもらう時は「くれます」を使います。',
+    en: "Use 'くれます' when someone gives to YOU."
+  },
+  useAgemasu: {
+    ja: '他の人にあげる時は「あげます」を使います。',
+    en: "Use 'あげます' when the subject gives to someone else."
+  },
+  subjectIsGiving: {
+    ja: '主語はあげる側です。「もらいます」は使いません。',
+    en: "Subject is giving, not receiving. Don't use 'もらいます'."
+  },
+  subjectIsReceiving: {
+    ja: '主語はもらう側です。「もらいます」を使ってください。',
+    en: "Subject is receiving. Use 'もらいます'."
+  },
+  incorrectVerb: {
+    ja: (verb) => `補助動詞が違います。正解：...${verb}`,
+    en: (verb) => `Incorrect auxiliary verb. Expected: ...${verb}`
+  },
+  markSource: {
+    ja: (name) => `出所（${name}）に「に」か「から」をつけてください。`,
+    en: (name) => `Mark the source (${name}) with 'に' or 'から'.`
+  },
+  markRecipient: {
+    ja: (name) => `受取人（${name}）に「に」をつけてください。`,
+    en: (name) => `Mark the recipient (${name}) with 'に'.`
+  },
+  perfect: {
+    ja: '完璧！',
+    en: 'Perfect!'
+  }
+};
+
+// Helper to get localized error message
+const getErrorMessage = (errorKey, showEnglish, ...args) => {
+  const error = VALIDATION_ERRORS[errorKey];
+  if (!error) return '';
+  
+  const jaText = typeof error.ja === 'function' ? error.ja(...args) : error.ja;
+  const enText = typeof error.en === 'function' ? error.en(...args) : error.en;
+  
+  if (showEnglish) {
+    return { primary: jaText, subtitle: enText };
+  }
+  return { primary: jaText, subtitle: null };
+};
+
+// Helper to get item reading in hiragana from furigana data
+const getItemReading = (item) => {
+  if (!item.furigana) return item.name;
+  return item.furigana.map(f => f.rt || toHiragana(f.text)).join('');
+};
+
+// Helper to get entity reading in hiragana from furigana data  
+const getEntityReading = (entity) => {
+  if (!entity.furigana) return entity.name;
+  return entity.furigana.map(f => f.rt || toHiragana(f.text)).join('');
+};
+
 // --- Custom Hooks ---
 
 // useClickOutside - detects clicks outside a ref element
@@ -580,58 +678,88 @@ const ITEMS = [
 // --- Helper Functions ---
 
 const normalizeInput = (str) => {
-  return str.replace(/\s+/g, '').trim();
+  // Convert to Hiragana and remove spaces
+  const hiragana = toHiragana(str);
+  return hiragana.replace(/\s+/g, '').trim();
 };
 
-const validateInput = (input, scenario, isAdvanced) => {
+const validateInput = (input, scenario, isAdvanced, showEnglish = false) => {
+  // Convert input to Hiragana before validation to allow Kanji/Katakana input
   const cleanInput = normalizeInput(input);
   
-  if (cleanInput.length < 5) return { valid: false, message: "Sentence is too short." };
+  if (cleanInput.length < 5) {
+    const msg = getErrorMessage('sentenceTooShort', showEnglish);
+    return { valid: false, message: msg.primary, subtitle: msg.subtitle };
+  }
 
   const { giver, receiver, item, perspective, action } = scenario;
   
+  // Get hiragana readings for flexible matching
+  const perspectiveReading = getEntityReading(perspective);
+  const itemReading = getItemReading(item);
+  
   // 1. Identify Topic/Perspective (Must use 'は')
-  const topicPhrase = perspective.name + 'は';
-  if (!cleanInput.includes(topicPhrase)) {
-    return { valid: false, message: `Start with the topic: ${perspective.name}は...` };
+  // Check both Kanji and Hiragana versions
+  const topicPhraseKanji = perspective.name + 'は';
+  const topicPhraseHiragana = perspectiveReading + 'は';
+  const hasTopic = cleanInput.includes(topicPhraseKanji) || cleanInput.includes(topicPhraseHiragana);
+  
+  if (!hasTopic) {
+    const msg = getErrorMessage('missingTopic', showEnglish, perspective.name);
+    return { valid: false, message: msg.primary, subtitle: msg.subtitle };
   }
 
   // 2. Identify Item (Must use 'を')
-  const itemPhrase = item.name + 'を';
-  if (!cleanInput.includes(itemPhrase)) {
-    return { valid: false, message: `Include the object: ${item.name}を...` };
+  // Check both Kanji and Hiragana versions, also check for が particle
+  const itemPhraseWoKanji = item.name + 'を';
+  const itemPhraseWoHiragana = itemReading + 'を';
+  const itemPhraseGaKanji = item.name + 'が';
+  const itemPhraseGaHiragana = itemReading + 'が';
+  
+  const hasItem = cleanInput.includes(itemPhraseWoKanji) || 
+                  cleanInput.includes(itemPhraseWoHiragana) ||
+                  cleanInput.includes(itemPhraseGaKanji) ||
+                  cleanInput.includes(itemPhraseGaHiragana);
+  
+  if (!hasItem) {
+    const msg = getErrorMessage('missingObject', showEnglish, item.name);
+    return { valid: false, message: msg.primary, subtitle: msg.subtitle };
   }
 
   // 3. Logic & Verb Check (Auxiliary)
   const isSubjectGiver = perspective.id === giver.id;
   let requiredVerb = '';
-  let interactionTargetName = '';
+  let interactionTarget = isSubjectGiver ? receiver : giver;
+  let interactionTargetName = interactionTarget.name;
+  let interactionTargetReading = getEntityReading(interactionTarget);
 
   if (isSubjectGiver) {
     // Subject is Giver.
     if (receiver.id === 'me') {
       requiredVerb = 'くれます';
-      interactionTargetName = receiver.name;
     } else {
       requiredVerb = 'あげます';
-      interactionTargetName = receiver.name;
     }
   } else {
     // Subject is Receiver.
     requiredVerb = 'もらいます';
-    interactionTargetName = giver.name;
   }
 
   // 4. Advanced Mode: Te-Form Check
   if (isAdvanced) {
-    if (!action) return { valid: false, message: "Error: No action defined." };
+    if (!action) {
+      const msg = getErrorMessage('noActionDefined', showEnglish);
+      return { valid: false, message: msg.primary, subtitle: msg.subtitle };
+    }
     if (!cleanInput.includes(action.te)) {
-      return { valid: false, message: `Use the correct Te-form action: ${action.te} (${action.label})` };
+      const msg = getErrorMessage('wrongTeForm', showEnglish, action.te, action.label);
+      return { valid: false, message: msg.primary, subtitle: msg.subtitle };
     }
     // Check that te-form appears directly before the auxiliary verb
     const teFormWithVerb = action.te + requiredVerb;
     if (!cleanInput.includes(teFormWithVerb)) {
-      return { valid: false, message: `Connect the te-form directly to the verb: ${action.te}${requiredVerb}` };
+      const msg = getErrorMessage('teFormConnection', showEnglish, action.te, requiredVerb);
+      return { valid: false, message: msg.primary, subtitle: msg.subtitle };
     }
   }
 
@@ -641,27 +769,50 @@ const validateInput = (input, scenario, isAdvanced) => {
     const usedKureru = cleanInput.includes('くれます');
     const usedMorau = cleanInput.includes('もらいます');
 
-    if (requiredVerb === 'くれます' && usedAgeru) return { valid: false, message: "Use 'くれます' when someone gives to YOU." };
-    if (requiredVerb === 'あげます' && usedKureru) return { valid: false, message: "Use 'あげます' when the subject gives to someone else." };
-    if (isSubjectGiver && usedMorau) return { valid: false, message: "Subject is giving, not receiving. Don't use 'もらいます'." };
-    if (!isSubjectGiver && !usedMorau) return { valid: false, message: "Subject is receiving. Use 'もらいます'." };
+    if (requiredVerb === 'くれます' && usedAgeru) {
+      const msg = getErrorMessage('useKuremasu', showEnglish);
+      return { valid: false, message: msg.primary, subtitle: msg.subtitle };
+    }
+    if (requiredVerb === 'あげます' && usedKureru) {
+      const msg = getErrorMessage('useAgemasu', showEnglish);
+      return { valid: false, message: msg.primary, subtitle: msg.subtitle };
+    }
+    if (isSubjectGiver && usedMorau) {
+      const msg = getErrorMessage('subjectIsGiving', showEnglish);
+      return { valid: false, message: msg.primary, subtitle: msg.subtitle };
+    }
+    if (!isSubjectGiver && !usedMorau) {
+      const msg = getErrorMessage('subjectIsReceiving', showEnglish);
+      return { valid: false, message: msg.primary, subtitle: msg.subtitle };
+    }
 
-    return { valid: false, message: `Incorrect auxiliary verb. Expected: ...${requiredVerb}` };
+    const msg = getErrorMessage('incorrectVerb', showEnglish, requiredVerb);
+    return { valid: false, message: msg.primary, subtitle: msg.subtitle };
   }
 
-  // Check Interaction Target + Particle
-  const targetWithNi = interactionTargetName + 'に';
-  const targetWithKara = interactionTargetName + 'から';
-  const hasNi = cleanInput.includes(targetWithNi);
-  const hasKara = cleanInput.includes(targetWithKara);
+  // Check Interaction Target + Particle (check both Kanji and Hiragana)
+  const targetWithNiKanji = interactionTargetName + 'に';
+  const targetWithNiHiragana = interactionTargetReading + 'に';
+  const targetWithKaraKanji = interactionTargetName + 'から';
+  const targetWithKaraHiragana = interactionTargetReading + 'から';
+  
+  const hasNi = cleanInput.includes(targetWithNiKanji) || cleanInput.includes(targetWithNiHiragana);
+  const hasKara = cleanInput.includes(targetWithKaraKanji) || cleanInput.includes(targetWithKaraHiragana);
 
   if (requiredVerb === 'もらいます') {
-    if (!hasNi && !hasKara) return { valid: false, message: `Mark the source (${interactionTargetName}) with 'に' or 'から'.` };
+    if (!hasNi && !hasKara) {
+      const msg = getErrorMessage('markSource', showEnglish, interactionTargetName);
+      return { valid: false, message: msg.primary, subtitle: msg.subtitle };
+    }
   } else {
-    if (!hasNi) return { valid: false, message: `Mark the recipient (${interactionTargetName}) with 'に'.` };
+    if (!hasNi) {
+      const msg = getErrorMessage('markRecipient', showEnglish, interactionTargetName);
+      return { valid: false, message: msg.primary, subtitle: msg.subtitle };
+    }
   }
 
-  return { valid: true, message: "Perfect!" };
+  const msg = getErrorMessage('perfect', showEnglish);
+  return { valid: true, message: msg.primary, subtitle: msg.subtitle };
 };
 
 // --- Components ---
@@ -699,25 +850,25 @@ const EntityDisplay = ({ entity, role, isPerspective, showEnglish, showFurigana 
   const EntityIcon = entity.icon || User;
   
   return (
-    <div className={`flex flex-col items-center p-4 rounded-xl border transition-all duration-300 w-32 ${
+    <div className={`flex flex-col items-center p-3 rounded-xl border transition-all duration-300 w-36 ${
       isPerspective 
         ? 'border-indigo-500 bg-[#2d2d2d] shadow-[0_0_15px_rgba(99,102,241,0.3)] transform scale-105' 
         : 'border-[#333] bg-[#222] opacity-80'
     }`}>
-      <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 ${
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
         entity.type === 'self' ? 'bg-indigo-900/50 text-indigo-400' : 'bg-orange-900/50 text-orange-400'
       }`}>
-        <EntityIcon size={24} />
+        <EntityIcon size={18} />
       </div>
       <RubyText 
         data={entity.furigana} 
         showFurigana={showFurigana} 
-        textClass="text-xl font-bold text-gray-200"
+        textClass="text-lg font-bold text-gray-200"
       />
       {showEnglish && (
-        <span className="text-xs text-gray-500 mt-1">{entity.label}</span>
+        <span className="text-[10px] text-gray-500 mt-0.5">{entity.label}</span>
       )}
-      <div className={`mt-2 px-2 py-0.5 rounded text-base font-bold tracking-wide flex flex-col items-center ${
+      <div className={`mt-1.5 px-2 py-0.5 rounded text-sm font-bold tracking-wide flex flex-col items-center ${
         role === 'giver' ? 'bg-green-900/30 text-green-400' : 'bg-purple-900/30 text-purple-400'
       }`}>
         <span>{role === 'giver' ? '贈り手' : '受け手'}</span>
@@ -735,13 +886,13 @@ const EntityDisplay = ({ entity, role, isPerspective, showEnglish, showFurigana 
 };
 
 const Checkbox = ({ label, checked, onChange, colorClass = "bg-green-600" }) => (
-  <label className="flex items-center gap-3 cursor-pointer group mb-2 select-none">
-    <div className={`w-5 h-5 rounded border border-gray-600 flex items-center justify-center transition-all ${
+  <label className="flex items-center gap-3 cursor-pointer group mb-2 select-none hover:cursor-pointer">
+    <div className={`w-5 h-5 rounded border border-gray-600 flex items-center justify-center transition-all cursor-pointer ${
       checked ? 'bg-green-600 border-transparent' : 'bg-[#222] group-hover:border-gray-500'
     }`}>
       {checked && <CheckCheck size={14} className="text-white" />}
     </div>
-    <span className={`text-sm ${checked ? 'text-gray-200 font-bold' : 'text-gray-500'}`}>{label}</span>
+    <span className={`text-sm cursor-pointer ${checked ? 'text-gray-200 font-bold' : 'text-gray-500'}`}>{label}</span>
     <input type="checkbox" className="hidden" checked={checked} onChange={onChange} />
   </label>
 );
@@ -920,16 +1071,16 @@ export default function App() {
 
   const handleCheck = () => {
     if (!scenario) return;
-    const result = validateInput(inputValue, scenario, settings.advancedMode);
+    const result = validateInput(inputValue, scenario, settings.advancedMode, settings.englishLabels);
     
     if (result.valid) {
-      setFeedback({ type: 'success', text: result.message });
+      setFeedback({ type: 'success', text: result.message, subtitle: result.subtitle });
       setIsCorrect(true);
       const newStreak = streak + 1;
       setStreak(newStreak);
       if (newStreak > maxStreak) setMaxStreak(newStreak);
     } else {
-      setFeedback({ type: 'error', text: result.message });
+      setFeedback({ type: 'error', text: result.message, subtitle: result.subtitle });
       setStreak(0);
     }
   };
@@ -960,7 +1111,7 @@ export default function App() {
       <div className="fixed top-6 left-6 z-50" ref={settingsRef}>
         <button 
           onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-          className={`flex items-center gap-2 text-gray-400 hover:text-white transition-colors border border-gray-700 hover:border-gray-500 bg-[#222] rounded px-3 py-1.5 text-sm ${isSettingsOpen ? 'bg-gray-800 text-white border-gray-500' : ''}`}
+          className={`flex items-center gap-2 text-gray-400 hover:text-white transition-colors border border-gray-700 hover:border-gray-500 bg-[#333333] hover:bg-[#444] rounded px-3 py-1.5 text-sm cursor-pointer ${isSettingsOpen ? 'bg-[#444] text-white border-gray-500' : ''}`}
         >
           <Settings size={16} />
           <span>設定</span>
@@ -968,7 +1119,7 @@ export default function App() {
 
         {/* Dropdown Menu */}
         {isSettingsOpen && (
-          <div className="absolute top-full left-0 mt-2 w-72 max-h-[80vh] overflow-y-auto bg-[#222] border border-[#333] rounded-xl shadow-2xl p-4 animate-in fade-in slide-in-from-top-2">
+          <div className="absolute top-full left-0 mt-2 w-72 max-h-[80vh] overflow-y-auto bg-[#333333] border border-[#444] rounded-xl shadow-2xl p-4 animate-in fade-in slide-in-from-top-2 cursor-pointer">
             
             {/* Verb Filter Selection */}
             <div className="mb-6">
@@ -1048,22 +1199,22 @@ export default function App() {
       </div>
 
       {/* Main Content Area */}
-      <main className="h-full flex flex-col items-center justify-center w-full relative max-h-[60vh]">
+      <main className="h-full flex flex-col items-center justify-center w-full relative pt-16 md:pt-0">
         
-        {/* Top Right: Streak Counters */}
-        <div className="absolute top-8 right-8 flex flex-col items-end gap-3">
-           <div className="flex flex-col items-end">
-            <span className="text-xs font-bold text-gray-200 uppercase tracking-wider mb-1 flex items-center gap-1">
-              現在のストリーク <Flame size={14} className={streak > 0 ? "text-orange-400" : "text-gray-400"} />
+        {/* Top Right: Streak Counters - 50% smaller, Current left of Top */}
+        <div className="absolute top-6 right-6 flex items-center gap-4">
+           <div className="flex flex-col items-center">
+            <span className="text-[10px] font-bold text-gray-200 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+              <Flame size={10} className={streak > 0 ? "text-orange-400" : "text-gray-400"} /> 現在
             </span>
-            <span className={`text-3xl font-mono font-bold ${streak > 0 ? "text-orange-300" : "text-gray-400"}`}>{streak}</span>
+            <span className={`text-base font-mono font-bold ${streak > 0 ? "text-orange-300" : "text-gray-400"}`}>{streak}</span>
           </div>
 
-          <div className="flex flex-col items-end">
-            <span className="text-xs font-bold text-gray-200 uppercase tracking-wider mb-1 flex items-center gap-1">
-              最高ストリーク <Trophy size={14} className={maxStreak > 0 ? "text-yellow-400" : "text-gray-400"} />
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] font-bold text-gray-200 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+              <Trophy size={10} className={maxStreak > 0 ? "text-yellow-400" : "text-gray-400"} /> 最高
             </span>
-            <span className={`text-3xl font-mono font-bold ${maxStreak > 0 ? "text-yellow-300" : "text-gray-400"}`}>{maxStreak}</span>
+            <span className={`text-base font-mono font-bold ${maxStreak > 0 ? "text-yellow-300" : "text-gray-400"}`}>{maxStreak}</span>
           </div>
         </div>
 
@@ -1074,10 +1225,10 @@ export default function App() {
               
               <div className="flex flex-col items-center mx-4">
                   <div 
-                    className="bg-[#2a2a2a] p-4 rounded-full border border-[#333] mb-3 relative flex items-center justify-center w-20 h-20 cursor-pointer hover:border-gray-500 transition-colors"
+                    className="bg-[#2a2a2a] p-3 rounded-full border border-[#333] mb-2 relative flex items-center justify-center w-14 h-14 cursor-pointer hover:border-gray-500 transition-colors"
                     onClick={() => setShowItemName(!showItemName)}
                   >
-                    <ItemIcon size={32} className="text-yellow-400" />
+                    <ItemIcon size={22} className="text-yellow-400" />
                     
                     {/* Advanced Mode Action Overlay */}
                     {settings.advancedMode && scenario.action && (
@@ -1098,9 +1249,9 @@ export default function App() {
                     )}
                   </div>
                   
-                  <div className="flex items-center text-[#444] mt-2 relative">
-                      <div className="w-20 h-0.5 bg-[#333]" />
-                      <ArrowRight size={20} className="text-[#555] -ml-1" />
+                  <div className="flex items-center text-[#666] mt-2 relative">
+                      <div className="w-20 h-[3px] bg-[#666]" />
+                      <ArrowRight size={20} strokeWidth={3} className="text-[#666] -ml-1" />
                       
                       {/* Advanced Mode Meaning */}
                       {settings.advancedMode && scenario.action && settings.englishLabels && (
@@ -1134,19 +1285,29 @@ export default function App() {
                     <CheckCircle size={28} />
                 </div>
             )}
+            {(feedback?.type === 'error' || showAnswer) && !isCorrect && (
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-red-500 animate-in zoom-in">
+                    <XCircle size={28} />
+                </div>
+            )}
           </div>
           
           {/* Feedback Text / Answer Explanation */}
-          <div className="min-h-[24px]">
+          <div className="min-h-[40px] flex flex-col items-center">
              {feedback && !showAnswer && (
-                <span className={`text-sm font-medium animate-in fade-in slide-in-from-bottom-2 ${feedback.type === 'success' ? 'text-green-400' : 'text-rose-400'}`}>
-                   {feedback.text}
-                </span>
+                <div className="text-center animate-in fade-in slide-in-from-bottom-2">
+                  <span className={`text-sm font-medium ${feedback.type === 'success' ? 'text-green-400' : 'text-rose-400'}`}>
+                     {feedback.text}
+                  </span>
+                  {feedback.subtitle && (
+                    <p className="text-xs text-gray-400 mt-0.5">{feedback.subtitle}</p>
+                  )}
+                </div>
              )}
              {showAnswer && (
                 <div className="text-center animate-in fade-in slide-in-from-bottom-2 space-y-2">
-                   <p className="text-white text-xs font-bold">正しい回答</p>
-                   <p className="text-white text-base font-medium inline-flex flex-wrap items-end justify-center gap-0">
+                   <p className="text-gray-400 text-xs font-bold">正しい回答</p>
+                   <p className="text-white text-lg font-medium inline-flex flex-wrap items-end justify-center" style={{gap: 0, letterSpacing: 0}}>
                       {/* Perspective (Topic) - Giver or Receiver color */}
                       <span className={scenario.perspective.id === scenario.giver.id ? 'text-green-400 font-bold' : 'text-purple-400 font-bold'}>
                         <RubyText 
@@ -1207,7 +1368,7 @@ export default function App() {
                     setShowAnswer(true);
                     setStreak(0);
                   }}
-                  className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
+                  className="text-gray-300 hover:text-white text-sm font-medium transition-colors cursor-pointer"
                >
                   わからない
                </button>
@@ -1223,7 +1384,7 @@ export default function App() {
                      setShowAnswer(false);
                      if (inputRef.current) inputRef.current.focus();
                    }}
-                   className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-full text-sm transition-colors"
+                   className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-full text-sm transition-colors cursor-pointer"
                  >
                    もう一度
                  </button>
@@ -1232,7 +1393,7 @@ export default function App() {
                      generateScenario();
                      setShowAnswer(false);
                    }}
-                   className={`${isCorrect ? 'bg-green-700 hover:bg-green-600' : 'bg-red-700 hover:bg-red-600'} text-white font-bold py-2 px-6 rounded-full text-sm transition-colors`}
+                   className={`${isCorrect ? 'bg-green-700 hover:bg-green-600' : 'bg-red-700 hover:bg-red-600'} text-white font-bold py-2 px-6 rounded-full text-sm transition-colors cursor-pointer`}
                  >
                    次へ
                  </button>
